@@ -15,8 +15,9 @@ LiveImageProvider::~LiveImageProvider()
 
 QImage LiveImageProvider::requestImage(const QString &id, QSize *size, const QSize &requestedSize) {
     QImage img(":/testchart.png");
-    img = img.scaled(QSize(100, 100));
-    size = new QSize(100, 100);
+    //std::cout << requestedSize.width() << "x" << requestedSize.height() << std::endl;
+    //img = img.scaled(QSize(100, 100));
+    *size = img.size();
     if (img.isNull())
         std::cout << "whoopsie" << std::endl;
     std::cout << id.toStdString() << std::endl;

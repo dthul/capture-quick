@@ -16,6 +16,14 @@ int main(int argc, char *argv[])
 
     QList<QObject*> dataList;
     dataList.append(new ImageModel("url1"));
+    dataList.append(new ImageModel("url2"));
+    dataList.append(new ImageModel("url3"));
+    dataList.append(new ImageModel("url4"));
+    dataList.append(new ImageModel("url5"));
+    dataList.append(new ImageModel("url6"));
+    dataList.append(new ImageModel("url7"));
+    dataList.append(new ImageModel("url8"));
+    dataList.append(new ImageModel("url9"));
     //QStringList dataList;
     //dataList.append("Item 1");
     engine.rootContext()->setContextProperty("imageGridModel", QVariant::fromValue(dataList));

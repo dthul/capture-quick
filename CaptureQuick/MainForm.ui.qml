@@ -3,42 +3,41 @@ import QtQuick.Controls 1.3
 import QtQuick.Layouts 1.1
 
 Item {
-    width: 640
-    height: 480
+    width: 1920
+    height: 1080
 
-    property alias button3: button3
-    property alias button2: button2
-    property alias button1: button1
     property alias imageGrid: imageGrid
 
     RowLayout {
-        anchors.centerIn: parent
+        id: rowLayout1
+        anchors.fill: parent
 
-        Button {
-            id: button1
-            text: qsTr("Press Me 1")
-        }
-
-        Button {
-            id: button2
-            text: qsTr("Press Me 2")
-        }
-
-        Button {
-            id: button3
-            text: qsTr("Press Me 3")
-        }
 
         GridView {
             id: imageGrid
             model: imageGridModel
-            x: 0
-            y: 0
-            width: 140
-            height: 140
             cellWidth: width / 3
+            cellHeight: height / 3
+            Layout.fillWidth: true
+            Layout.fillHeight: true
             delegate: Image {
+                height: imageGrid.cellHeight
+                width: imageGrid.cellWidth
                 source: "image://live/" + url
+                cache: false
+                mipmap: true
+                //fillMode: Image.PreserveAspectFit
+            }
+        }
+
+        ColumnLayout {
+            id: columnLayout1
+            width: 100
+            height: 100
+            Layout.alignment: Qt.AlignTop
+
+            ComboBox {
+                id: comboBox1
             }
         }
     }

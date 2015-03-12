@@ -5,8 +5,8 @@ import QtQuick.Dialogs 1.2
 
 ApplicationWindow {
     title: qsTr("Hello World")
-    width: 640
-    height: 480
+    width: 1920
+    height: 1080
     visible: true
 
     menuBar: MenuBar {
@@ -25,29 +25,20 @@ ApplicationWindow {
 
     MainForm {
         anchors.fill: parent
-        button1.onClicked: messageDialog.show(qsTr("Button 1 pressed"))
-        button2.onClicked: messageDialog.show(qsTr("Button 2 pressed"))
-        button3.onClicked: messageDialog.show(qsTr("Button 3 pressed"))
         imageGrid.onWidthChanged: {
             imageGrid.cellWidth = imageGrid.width / 3
         }
+        imageGrid.onHeightChanged: {
+            imageGrid.cellHeight = imageGrid.height / 3
+        }
+
         //imageGrid.model: imageGridModel
     }
 
     Connections {
-        target: liveImageProvider
+        //target: liveImageProvider
         onStateChanged: {
             // refresh image grid here
-        }
-    }
-
-    MessageDialog {
-        id: messageDialog
-        title: qsTr("May I have your attention, please?")
-
-        function show(caption) {
-            messageDialog.text = caption;
-            messageDialog.open();
         }
     }
 }
