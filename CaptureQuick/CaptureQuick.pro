@@ -3,7 +3,8 @@ TEMPLATE = app
 QT += qml quick widgets
 
 SOURCES += main.cpp \
-    liveimageprovider.cpp
+    liveimageprovider.cpp \
+    imagemodel.cpp
 
 RESOURCES += qml.qrc \
     images.qrc
@@ -15,4 +16,5 @@ QML_IMPORT_PATH =
 include(deployment.pri)
 
 HEADERS += \
-    liveimageprovider.h
+    liveimageprovider.h \
+    imagemodel.h

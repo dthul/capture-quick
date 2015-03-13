@@ -26,11 +26,8 @@ android-no-sdk {
 
 export(INSTALLS)
 
-HEADERS += \
-    $$PWD/imagemodel.h
+HEADERS +=
 
-SOURCES += \
-    $$PWD/imagemodel.cpp
+SOURCES +=
 
-DISTFILES += \
-    $$PWD/ImageView.qml
+DISTFILES +=
