@@ -31,115 +31,6 @@ ApplicationWindow {
 
         property alias imageGrid: imageGrid
 
-        MouseArea {
-            id: overlay
-            x: 0
-            y: 0
-            width: 12
-            height: 12
-            z: 999
-            property alias image: overlayImage
-            onClicked: {
-                overlay.state = ""
-            }
-            //color: "red";
-
-            property int start_x: 0
-            property int start_y: 0
-            property int start_width: 0
-            property int start_height: 0
-
-            Image {
-                id: overlayImage
-                width: parent.width
-                height: parent.height
-                //color: "red"
-                clip: true
-            }
-            states: [
-                State {
-                    name: "full"
-                    //when: button1.pressed == true
-                    PropertyChanges {
-                        target: overlay
-                        x: imageGrid.x
-                        y: imageGrid.y
-                        width: imageGrid.width
-                        height: imageGrid.height
-                    }
-                }
-            ]
-
-            transitions: [
-                Transition {
-                    from: ""
-                    to: "full"
-                    SequentialAnimation {
-                        ParallelAnimation {
-                            NumberAnimation {
-                                target: overlay
-                                property: "x"
-                                to: overlay.start_x
-                                duration: 0
-                            }
-                            NumberAnimation {
-                                target: overlay
-                                property: "y"
-                                to: overlay.start_y
-                                duration: 0
-                            }
-                            NumberAnimation {
-                                target: overlay
-                                property: "width"
-                                to: overlay.start_width
-                                duration: 0
-                            }
-                            NumberAnimation {
-                                target: overlay
-                                property: "height"
-                                to: overlay.start_height
-                                duration: 0
-                            }
-                        }
-
-                        NumberAnimation {
-                            target: overlay
-                            properties: "x,y,width,height"
-                            duration: 200
-                        }
-                    }
-                },
-                Transition {
-                    from: "full"
-                    to: ""
-                    NumberAnimation {
-                        target: overlay
-                        property: "x"
-                        to: overlay.start_x
-                        duration: 200
-                    }
-                    NumberAnimation {
-                        target: overlay
-                        property: "y"
-                        to: overlay.start_y
-                        duration: 200
-                    }
-                    NumberAnimation {
-                        target: overlay
-                        property: "width"
-                        to: overlay.start_width
-                        duration: 200
-                    }
-                    NumberAnimation {
-                        target: overlay
-                        property: "height"
-                        to: overlay.start_height
-                        duration: 200
-                    }
-                }
-            ]
-        }
-
         RowLayout {
             id: rowLayout1
             objectName: "rowLayout1"
@@ -152,150 +43,71 @@ ApplicationWindow {
                 rows: 3
                 columnSpacing: 5
                 rowSpacing: 5
-                MouseArea {
-                    id: mouse0
-                    Layout.row: 0
-                    Layout.column: 0
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                    Image {
-                        id: image0
-                        cache: false
-                        mipmap: true
-                        width: parent.width
-                        height: parent.height
-                        source: "image://live/" + imageGridModel[0].url
-                        /*states: State {
-                            name: "big"
-                            when: button1.pressed == true
-                            ParentChange {
-                                target: image0
-                                parent: mainFrame
-                            }
-                        }
-                        transitions: Transition {
-                            from: ""
-                            to: "big"
-                            reversible: true
 
-                            ParentAnimation {
-                            }
-                        }*/
-                    }
+                ImageView {
+                    id: imageView0
+                    model: imageGridModel[0]
 
-                    onClicked: {
-                        overlay.x = image0.x
-                        overlay.y = image0.y
-                        overlay.width = image0.width
-                        overlay.height = image0.height
-                        overlay.opacity = 1
-                        overlay.image.source = image0.source
-                        overlay.state = "full"
-                    }
-                }
-                Image {
-                    cache: false
-                    mipmap: true
-                    Layout.row: 0
-                    Layout.column: 1
                     Layout.fillHeight: true
                     Layout.fillWidth: true
-                    source: "image://live/" + imageGridModel[1].url
                 }
-                Image {
-                    cache: false
-                    mipmap: true
-                    Layout.row: 0
-                    Layout.column: 2
+                ImageView {
+                    id: imageView1
+                    model: imageGridModel[1]
+
                     Layout.fillHeight: true
                     Layout.fillWidth: true
-                    source: "image://live/" + imageGridModel[2].url
                 }
-                Image {
-                    cache: false
-                    mipmap: true
-                    Layout.row: 1
-                    Layout.column: 0
+                ImageView {
+                    id: imageView2
+                    model: imageGridModel[2]
+
                     Layout.fillHeight: true
                     Layout.fillWidth: true
-                    source: "image://live/" + imageGridModel[3].url
                 }
-                Image {
-                    cache: false
-                    mipmap: true
-                    Layout.row: 1
-                    Layout.column: 1
+                ImageView {
+                    id: imageView3
+                    model: imageGridModel[3]
+
                     Layout.fillHeight: true
                     Layout.fillWidth: true
-                    source: "image://live/" + imageGridModel[4].url
                 }
-                Image {
-                    cache: false
-                    mipmap: true
-                    Layout.row: 1
-                    Layout.column: 2
+                ImageView {
+                    id: imageView4
+                    model: imageGridModel[4]
+
                     Layout.fillHeight: true
                     Layout.fillWidth: true
-                    source: "image://live/" + imageGridModel[5].url
                 }
-                Image {
-                    cache: false
-                    mipmap: true
-                    Layout.row: 2
-                    Layout.column: 0
+                ImageView {
+                    id: imageView5
+                    model: imageGridModel[5]
+
                     Layout.fillHeight: true
                     Layout.fillWidth: true
-                    source: "image://live/" + imageGridModel[6].url
                 }
-                Image {
-                    cache: false
-                    mipmap: true
-                    Layout.row: 2
-                    Layout.column: 1
+                ImageView {
+                    id: imageView6
+                    model: imageGridModel[6]
+
                     Layout.fillHeight: true
                     Layout.fillWidth: true
-                    source: "image://live/" + imageGridModel[7].url
                 }
-                Text {
-                    text: overlay.state
+                ImageView {
+                    id: imageView7
+                    model: imageGridModel[7]
+
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                }
+                ImageView {
+                    id: imageView8
+                    model: imageGridModel[8]
+
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
                 }
             }
-
-            /*GridView {
-                id: imageGrid
-                model: imageGridModel
-                cellWidth: width / 3
-                cellHeight: height / 3
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                delegate: Image {
-                    id: delegate_image
-                    height: imageGrid.cellHeight
-                    width: imageGrid.cellWidth
-                    source: "image://live/" + url
-                    cache: false
-                    mipmap: true
-                    //fillMode: Image.PreserveAspectFit
-                    states: State {
-                        name: "big"
-                        when: button1.pressed == true
-                        ParentChange {
-                            //target: delegate_image
-                            parent: imageGrid
-                        }
-                    }
-                    transitions: Transition {
-                        from: ""
-                        to: "big"
-                        reversible: true
-
-                        ParentAnimation {
-
-
-                        }
-                    }
-                }
-            }*/
 
             ColumnLayout {
                 id: columnLayout1
@@ -308,12 +120,8 @@ ApplicationWindow {
                 }
 
                 Button {
-                    text: "Press me"
+                    text: qsTr("Press me")
                     id: button1
-                    onClicked: {
-                        //overlay.state = "image0"
-                        overlay.state = "full"
-                    }
                 }
             }
         }

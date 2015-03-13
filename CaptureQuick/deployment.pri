@@ -31,3 +31,6 @@ HEADERS += \
 
 SOURCES += \
     $$PWD/imagemodel.cpp
+
+DISTFILES += \
+    $$PWD/ImageView.qml
