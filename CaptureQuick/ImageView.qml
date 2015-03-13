@@ -34,6 +34,7 @@ Item {
                     target: overlay
                     properties: "x,y,width,height"
                     duration: 200
+                    easing.type: Easing.InOutCubic
                 }
             }
         },
@@ -45,6 +46,7 @@ Item {
                     target: overlay
                     properties: "x,y,width,height"
                     duration: 200
+                    easing.type: Easing.InOutCubic
                 }
                 NumberAnimation {
                     target: overlay
@@ -110,7 +112,7 @@ Item {
         states: State {
             name: "hovered"
             PropertyChanges {
-                target: shine
+                target: glow
                 opacity: 0.1
             }
         }
@@ -120,7 +122,7 @@ Item {
                 from: ""
                 to: "hovered"
                 NumberAnimation {
-                    target: shine
+                    target: glow
                     property: "opacity"
                     duration: 100
                 }
@@ -129,7 +131,7 @@ Item {
                 from: "hovered"
                 to: ""
                 NumberAnimation {
-                    target: shine
+                    target: glow
                     property: "opacity"
                     duration: 100
                 }
@@ -146,17 +148,20 @@ Item {
         }
 
         // This rectangle will provide the white "glow" when
-        // moving the mouse over an image
+        // hovering with the mouse over an image
         Rectangle {
-            id: shine
+            id: glow
+            // Position the rectangle exactly over the image
             x: image.x
             y: image.y
             width: image.width
             height: image.height
             color: "white"
+            // Hide the glow initially
             opacity: 0
         }
 
+        // Open the overlay on click
         onClicked: {
             imageView.state = "maximized"
         }
