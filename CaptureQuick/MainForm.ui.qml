@@ -3,8 +3,8 @@ import QtQuick.Controls 1.3
 import QtQuick.Layouts 1.1
 
 Item {
-    width: 1920
-    height: 1080
+    width: 620
+    height: 480
 
     property alias imageGrid: imageGrid
 
