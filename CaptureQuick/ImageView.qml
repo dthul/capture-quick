@@ -1,24 +1,28 @@
 import QtQuick 2.4
+import QtQuick.Layouts 1.1
 
 Item {
     id: imageView
 
     property QtObject model: null
 
-    states: [
-        State {
-            name: "maximized"
-            PropertyChanges {
-                target: overlay
-                x: imageGrid.x
-                y: imageGrid.y
-                width: imageGrid.width
-                height: imageGrid.height
-                opacity: 1
-                enabled: true
-            }
+    states: State {
+        name: "maximized"
+        PropertyChanges {
+            target: overlay
+            x: imageGrid.x
+            y: imageGrid.y
+            z: 2
+            width: imageGrid.width
+            height: imageGrid.height
+            opacity: 1
+            enabled: true
         }
-    ]
+        PropertyChanges {
+            target: info
+            z: 3
+        }
+    }
 
     transitions: [
         Transition {
@@ -26,8 +30,13 @@ Item {
             to: "maximized"
             SequentialAnimation {
                 NumberAnimation {
+                    target: info
+                    property: "z"
+                    duration: 0
+                }
+                NumberAnimation {
                     target: overlay
-                    property: "opacity"
+                    properties: "z,opacity"
                     duration: 0
                 }
                 NumberAnimation {
@@ -50,7 +59,12 @@ Item {
                 }
                 NumberAnimation {
                     target: overlay
-                    property: "opacity"
+                    properties: "z,opacity"
+                    duration: 0
+                }
+                NumberAnimation {
+                    target: info
+                    property: "z"
                     duration: 0
                 }
             }
@@ -62,7 +76,7 @@ Item {
 
         // Make imageGrid the overlay's parent so that it is effectively taken out
         // of the GridLayout
-        parent: imageGrid
+        parent: mainFrame
 
         // Map the image's coordinates (which are relative to its respective GridLayout cell)
         // to the upper left corner of the imageGrid (which is the overlay's parent) to position
@@ -86,19 +100,19 @@ Item {
         opacity: 0
 
         // Close the overlay on click
-        onClicked: {
-            imageView.state = ""
-        }
+        onClicked: imageView.state = ""
+
+        z: 0
 
         // This is the overlayed image that the user will actually see
         // when opening the overlay
         Image {
             id: overlayImage
-            width: parent.width
-            height: parent.height
+            width: overlay.width
+            height: overlay.height
             clip: true
             source: image.source
-            z: 999 // needed?
+            mipmap: true
         }
     }
 
@@ -138,12 +152,16 @@ Item {
             }
         ]
 
+        // This is the image that is actually visible in
+        // the image grid.
         Image {
             id: image
             cache: false
             mipmap: true
             width: parent.width
             height: parent.height
+            // The "live" image provider has been registered from
+            // the C++ code
             source: "image://live/" + model.url
         }
 
@@ -162,8 +180,101 @@ Item {
         }
 
         // Open the overlay on click
-        onClicked: {
-            imageView.state = "maximized"
+        onClicked: imageView.state = "maximized"
+    }
+
+    Item {
+        id: info
+
+        states: State {
+            name: "visible"
+            PropertyChanges {
+                target: infoRect
+                opacity: 0.7
+            }
+            PropertyChanges {
+                target: infoImg
+                rotation: 0
+            }
+        }
+
+        transitions: [
+            Transition {
+                from: ""
+                to: "visible"
+                NumberAnimation {
+                    target: infoRect
+                    property: "opacity"
+                    duration: 100
+                }
+                NumberAnimation {
+                    target: infoImg
+                    property: "rotation"
+                    duration: 100
+                }
+            },
+            Transition {
+                from: "visible"
+                to: ""
+                NumberAnimation {
+                    target: infoRect
+                    property: "opacity"
+                    duration: 100
+                }
+                NumberAnimation {
+                    target: infoImg
+                    property: "rotation"
+                    duration: 100
+                }
+            }
+        ]
+
+        parent: mainFrame
+        anchors.right: overlay.right
+        anchors.rightMargin: 5
+        anchors.top: overlay.top
+        anchors.topMargin: 5
+        width: infoPanel.width + 20
+        height: infoPanel.height + 20
+        z: 1
+
+        Rectangle {
+            id: infoRect
+            color: "black"
+            radius: 10
+            opacity: 0
+            anchors.fill: parent
+            ColumnLayout {
+                id: infoPanel
+                anchors.centerIn: parent
+                Text {
+                    color: "white"
+                    text: "Info"
+                }
+                Text {
+                    color: "white"
+                    text: "more info"
+                }
+            }
+        }
+
+        MouseArea {
+            anchors.right: info.right
+            anchors.top: info.top
+            anchors.topMargin: 5
+            anchors.rightMargin: 5
+            width: infoImg.width
+            height: infoImg.height
+            Image {
+                id: infoImg
+                source: "qrc:/close.svg"
+                width: 15
+                height: 15
+                rotation: -45
+            }
+
+            onClicked: info.state = info.state == "" ? "visible" : ""
         }
     }
+
 }

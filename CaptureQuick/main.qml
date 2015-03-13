@@ -25,19 +25,14 @@ ApplicationWindow {
 
     Item {
         id: mainFrame
-        objectName: "mainFrame"
         anchors.fill: parent
-
-        property alias imageGrid: imageGrid
 
         RowLayout {
             id: rowLayout1
-            objectName: "rowLayout1"
             anchors.fill: parent
 
             GridLayout {
                 id: imageGrid
-                objectName: "imageGrid"
                 columns: 3
                 rows: 3
                 columnSpacing: 5

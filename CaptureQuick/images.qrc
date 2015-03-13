@@ -1,5 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>testchart.png</file>
+        <file>info.svg</file>
+        <file>close.svg</file>
     </qresource>
 </RCC>

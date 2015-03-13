@@ -24,10 +24,8 @@ int main(int argc, char *argv[])
     dataList.append(new ImageModel("url7"));
     dataList.append(new ImageModel("url8"));
     dataList.append(new ImageModel("url9"));
-    //QStringList dataList;
-    //dataList.append("Item 1");
+
     engine.rootContext()->setContextProperty("imageGridModel", QVariant::fromValue(dataList));
-    //engine.rootContext()->setContextProperty("liveImageProvider", (QObject*)liveImgProvider);
 
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 
