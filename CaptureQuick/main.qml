@@ -40,63 +40,63 @@ ApplicationWindow {
 
                 ImageView {
                     id: imageView0
-                    model: imageGridModel[0]
+                    model: cameras[0]
 
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                 }
                 ImageView {
                     id: imageView1
-                    model: imageGridModel[1]
+                    model: cameras[1]
 
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                 }
                 ImageView {
                     id: imageView2
-                    model: imageGridModel[2]
+                    model: cameras[2]
 
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                 }
                 ImageView {
                     id: imageView3
-                    model: imageGridModel[3]
+                    model: cameras[3]
 
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                 }
                 ImageView {
                     id: imageView4
-                    model: imageGridModel[4]
+                    model: cameras[4]
 
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                 }
                 ImageView {
                     id: imageView5
-                    model: imageGridModel[5]
+                    model: cameras[5]
 
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                 }
                 ImageView {
                     id: imageView6
-                    model: imageGridModel[6]
+                    model: cameras[6]
 
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                 }
                 ImageView {
                     id: imageView7
-                    model: imageGridModel[7]
+                    model: cameras[7]
 
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                 }
                 ImageView {
                     id: imageView8
-                    model: imageGridModel[8]
+                    model: cameras[8]
 
                     Layout.fillHeight: true
                     Layout.fillWidth: true

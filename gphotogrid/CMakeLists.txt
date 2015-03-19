@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 
-find_package(wxWidgets REQUIRED core)
-include(${wxWidgets_USE_FILE})
+option(WITH_GUI "Build the photogrid UI (requires wxWidgets)" ON)
 
 # for MacPorts
 include_directories(/opt/local/include)
@@ -15,14 +14,19 @@ add_library(gp STATIC gpwrap.cpp gputil.cpp)
 # target_compile_features(gp PRIVATE cxx_rvalue_references cxx_deleted_functions cxx_auto_type)
 target_link_libraries(gp -lgphoto2 -lgphoto2_port)
 
-add_executable(gphotogrid gphotogrid.cpp optionspanel.cpp imagepanel.cpp timeline.cpp previewfeed.cpp gfxui.cpp app.cpp)
-target_link_libraries(gphotogrid gp ${wxWidgets_LIBRARIES})
-
 add_executable(paraphotos paraphotos.cpp signalhandler.cpp)
 target_link_libraries(paraphotos gp)
 
-add_executable(timelinetest timelinetest.cpp timeline.cpp)
-target_link_libraries(timelinetest ${wxWidgets_LIBRARIES})
-
 add_executable(gpwraptest gptest.cpp signalhandler.cpp)
 target_link_libraries(gpwraptest gp)
+
+if(WITH_GUI)
+    find_package(wxWidgets REQUIRED core)
+    include(${wxWidgets_USE_FILE})
+
+    add_executable(gphotogrid gphotogrid.cpp optionspanel.cpp imagepanel.cpp timeline.cpp previewfeed.cpp gfxui.cpp app.cpp)
+    target_link_libraries(gphotogrid gp ${wxWidgets_LIBRARIES})
+
+    add_executable(timelinetest timelinetest.cpp timeline.cpp)
+    target_link_libraries(timelinetest ${wxWidgets_LIBRARIES})
+endif()

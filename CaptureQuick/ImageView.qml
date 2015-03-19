@@ -112,6 +112,7 @@ Item {
             height: overlay.height
             clip: true
             source: image.source
+            cache: false
             mipmap: true
         }
     }

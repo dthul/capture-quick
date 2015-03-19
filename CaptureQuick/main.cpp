@@ -2,7 +2,8 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 
-#include "imagemodel.h"
+#include "camera.h"
+#include "capture.h"
 #include "liveimageprovider.h"
 
 int main(int argc, char *argv[])
@@ -14,18 +15,7 @@ int main(int argc, char *argv[])
     LiveImageProvider *liveImgProvider = new LiveImageProvider();
     engine.addImageProvider("live", liveImgProvider);
 
-    QList<QObject*> dataList;
-    dataList.append(new ImageModel("url1"));
-    dataList.append(new ImageModel("url2"));
-    dataList.append(new ImageModel("url3"));
-    dataList.append(new ImageModel("url4"));
-    dataList.append(new ImageModel("url5"));
-    dataList.append(new ImageModel("url6"));
-    dataList.append(new ImageModel("url7"));
-    dataList.append(new ImageModel("url8"));
-    dataList.append(new ImageModel("url9"));
-
-    engine.rootContext()->setContextProperty("imageGridModel", QVariant::fromValue(dataList));
+    Capture capture(&engine);
 
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 
