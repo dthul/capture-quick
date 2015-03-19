@@ -1,8 +1,11 @@
 #pragma once
 
+#include <atomic>
+
 #include <QDateTime>
 #include <QImage>
 #include <QObject>
+#include <QString>
 #include <QThread>
 
 #include "previewfeed.h"
@@ -73,6 +76,9 @@ private:
     QThread* m_previewThread = nullptr;
     PreviewFeed* m_previewFeed = nullptr;
 
-    QImage m_latest_preview;
-    QDateTime m_latest_preview_time;
+    QImage m_latest_preview = QImage(":/testchart.png");
+    QDateTime m_latest_preview_time = QDateTime::currentDateTimeUtc();
+
+    static std::atomic_uint s_id;
+    uint m_id;
 };

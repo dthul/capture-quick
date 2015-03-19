@@ -1,13 +1,18 @@
 #include "camera.h"
 
-Camera::Camera(QObject *parent) : QObject(parent)
+std::atomic_uint Camera::s_id{0};
+
+Camera::Camera(QObject *parent) :
+    QObject(parent),
+    m_id(s_id++)
 {
 
 }
 
 Camera::Camera(gp::Camera* const gp_camera, QObject *parent) :
     QObject(parent),
-    m_camera(gp_camera)
+    m_camera(gp_camera),
+    m_id(s_id++)
 {
 
 }
@@ -123,14 +128,15 @@ void Camera::startPreview() {
     m_previewFeed->moveToThread(m_previewThread);
     connect(m_previewThread, &QThread::started, m_previewFeed, &PreviewFeed::start);
     connect(m_previewFeed, &PreviewFeed::stopped, m_previewThread, &QThread::quit);
+    connect(m_previewFeed, &PreviewFeed::newPreviewImage, this, &Camera::setPreviewImage);
     connect(m_previewThread, &QThread::finished, this, &Camera::previewStopped);
     m_previewThread->start();
 }
 
 void Camera::stopPreview() {
     if (m_previewFeed != nullptr) {
-        // previewFeed->stop();
-        QMetaObject::invokeMethod(m_previewFeed, "stop", Qt::QueuedConnection);
+        m_previewFeed->stop();
+        // QMetaObject::invokeMethod(m_previewFeed, "stop", Qt::QueuedConnection);
     }
 }
 
@@ -139,4 +145,14 @@ void Camera::previewStopped() {
     m_previewFeed = nullptr;
     delete m_previewThread;
     m_previewThread = nullptr;
+}
+
+void Camera::setPreviewImage(const QImage& preview) {
+    m_latest_preview = preview;
+    m_latest_preview_time = QDateTime::currentDateTimeUtc();
+    emit previewUrlChanged(previewUrl());
+}
+
+QString Camera::previewUrl() const {
+    return QString::number(m_id) + QString("/") + m_latest_preview_time.toString("dd.MM.yyyy-hh:mm:ss.zzz");
 }
