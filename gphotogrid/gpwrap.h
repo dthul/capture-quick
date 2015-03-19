@@ -1,5 +1,4 @@
-#ifndef GPWRAP_H
-#define GPWRAP_H
+#pragma once
 
 // http://libgphoto2.sourcearchive.com/documentation/2.4.10.1-2ubuntu5/gphoto2-widget_8h_ac2407563a7f8c22de8df8d5009f0e4e1.html1
 // http://www.gphoto.org/doc/api/gphoto2-camera_8h.html
@@ -299,5 +298,3 @@ struct CameraEvent::Traits<CameraEvent::EVENT_FOLDER_ADDED> {
 };
 
 }
-
-#endif

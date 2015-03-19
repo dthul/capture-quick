@@ -1,3 +1,5 @@
+#pragma once
+
 #include "gpwrap.h"
 
 // utilities for gpwrap's Widget data types, more complex than plain strings or

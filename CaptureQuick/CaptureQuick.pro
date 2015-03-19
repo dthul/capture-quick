@@ -2,9 +2,13 @@ TEMPLATE = app
 
 QT += qml quick widgets
 
+CONFIG += c++11
+
 SOURCES += main.cpp \
     liveimageprovider.cpp \
-    imagemodel.cpp
+    imagemodel.cpp \
+    camera.cpp \
+    previewfeed.cpp
 
 RESOURCES += qml.qrc \
     images.qrc
@@ -17,4 +21,28 @@ include(deployment.pri)
 
 HEADERS += \
     liveimageprovider.h \
-    imagemodel.h
+    imagemodel.h \
+    camera.h \
+    previewfeed.h
+
+# For MacPorts
+QMAKE_LIBDIR += /opt/local/lib
+
+# Link against libgp and libgphoto2
+
+# libgphoto2 is assumed to be available system wide
+LIBS += -lgphoto2 -lgphoto2_port
+
+# libg is assumed to be in the folder ../gphotogrid/build
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../gphotogrid/build/release/ -lgp
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../gphotogrid/build/debug/ -lgp
+else:unix: LIBS += -L$$PWD/../gphotogrid/build/ -lgp
+
+INCLUDEPATH += $$PWD/../gphotogrid
+DEPENDPATH += $$PWD/../gphotogrid
+
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../gphotogrid/build/release/libgp.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../gphotogrid/build/debug/libgp.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../gphotogrid/build/release/gp.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../gphotogrid/build/debug/gp.lib
+else:unix: PRE_TARGETDEPS += $$PWD/../gphotogrid/build/libgp.a
