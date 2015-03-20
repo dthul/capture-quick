@@ -2,8 +2,14 @@
 
 #include <iostream>
 
-LiveImageProvider::LiveImageProvider() :
-    QQuickImageProvider(QQmlImageProviderBase::Image)
+#include <QRegExp>
+
+const QRegExp url_regex("^([^/]+)/([^/]+)$");
+
+LiveImageProvider::LiveImageProvider(QList<Camera*>* cameras) :
+    QQuickImageProvider(QQmlImageProviderBase::Image),
+    m_cameras(cameras),
+    m_default_image(QImage(":/testchart.png"))
 {
 
 }
@@ -13,12 +19,23 @@ LiveImageProvider::~LiveImageProvider()
 
 }
 
-QImage LiveImageProvider::requestImage(const QString &id, QSize *size, const QSize &requestedSize) {
-    QImage img(":/testchart.png");
-    // Ignore the requested size and just returned the image as-is
-    *size = img.size();
-    //if (img.isNull())
-    //    std::cout << "whoopsie" << std::endl;
-    //std::cout << id.toStdString() << std::endl;
-    return img;
+QImage LiveImageProvider::requestImage(const QString &url, QSize *size, const QSize &requestedSize) {
+    std::cout << "Request for image " << url.toStdString() << std::endl;
+    *size = m_default_image.size();
+    if(!url_regex.exactMatch(url))
+        return m_default_image;
+    const QString id_str = url_regex.capturedTexts()[1];
+    std::cout << "id string: " << id_str.toStdString() << std::endl;
+    bool ok;
+    const uint id = id_str.toUInt(&ok);
+    if (!ok)
+        return m_default_image;
+    for (Camera* cam : *m_cameras) {
+        if (cam->m_id == id) {
+            const QImage& preview = cam->latestPreview();
+            *size = preview.size();
+            return preview;
+        }
+    }
+    return m_default_image;
 }

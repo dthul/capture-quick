@@ -12,8 +12,6 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
 
-    LiveImageProvider *liveImgProvider = new LiveImageProvider();
-    engine.addImageProvider("live", liveImgProvider);
 
     Capture capture(&engine);
 

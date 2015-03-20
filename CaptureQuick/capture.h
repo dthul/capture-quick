@@ -5,6 +5,7 @@
 
 #include "camera.h"
 #include "gputil.h"
+#include "liveimageprovider.h"
 
 class Capture : public QObject
 {
@@ -21,4 +22,5 @@ private:
     QList<QObject*> m_cameras;
     gp::Context gpcontext;
     std::vector<gp::Camera> m_gp_cameras;
+    LiveImageProvider m_live_image_provider;
 };

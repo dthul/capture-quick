@@ -45,6 +45,9 @@ public:
     void stopPreview();
 
     QString previewUrl() const;
+    const QImage& latestPreview() const;
+
+    const uint m_id;
 
 signals:
     void apertureChanged(const QString& newAperture);
@@ -60,7 +63,7 @@ signals:
 public slots:
 private slots:
     void previewStopped();
-    void setPreviewImage(const QImage& preview);
+    void setPreviewImage(const QImage preview);
 private:
     void readConfig();
 
@@ -80,5 +83,4 @@ private:
     QDateTime m_latest_preview_time = QDateTime::currentDateTimeUtc();
 
     static std::atomic_uint s_id;
-    uint m_id;
 };

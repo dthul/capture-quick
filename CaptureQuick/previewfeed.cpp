@@ -18,6 +18,7 @@ void PreviewFeed::start() {
     JpegBuffer jpeg;
     while (!m_stopped) {
         try {
+            std::cout << "Waiting for preview..." << std::endl;
             jpeg = m_camera->preview();
         } catch (gp::Exception& ex) {
             std::cout << "cam " /* TODO << index*/ << ": " << ex.what() << std::endl;
@@ -25,6 +26,7 @@ void PreviewFeed::start() {
         }
         // Convert the buffer containing jpeg data to a QImage
         QImage previewImage(QImage::fromData(reinterpret_cast<const uchar*>(jpeg.data()), jpeg.size()));
+        std::cout << "emitting new preview image" << std::endl;
         emit newPreviewImage(previewImage);
     }
     emit stopped();

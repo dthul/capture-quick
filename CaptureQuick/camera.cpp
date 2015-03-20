@@ -1,5 +1,7 @@
 #include "camera.h"
 
+#include <iostream>
+
 std::atomic_uint Camera::s_id{0};
 
 Camera::Camera(QObject *parent) :
@@ -14,7 +16,7 @@ Camera::Camera(gp::Camera* const gp_camera, QObject *parent) :
     m_camera(gp_camera),
     m_id(s_id++)
 {
-
+    readConfig();
 }
 
 Camera::~Camera()
@@ -34,9 +36,9 @@ void Camera::readConfig() {
     if (m_camera != nullptr) {
         // Read the new settings from the camera
         const gp::Widget configWidget = m_camera->config();
-        gp::Aperture apertureConfig = configWidget.get<gp::Aperture>();
-        gp::ShutterSpeed shutterConfig = configWidget.get<gp::ShutterSpeed>();
-        gp::Iso isoConfig = configWidget.get<gp::Iso>();
+        gp::Aperture apertureConfig = configWidget["aperture"].get<gp::Aperture>();
+        gp::ShutterSpeed shutterConfig = configWidget["shutterspeed"].get<gp::ShutterSpeed>();
+        gp::Iso isoConfig = configWidget["iso"].get<gp::Iso>();
 
         for (const auto& apertureOption : apertureConfig.choices())
             m_apertureChoices.append(QString::fromStdString(apertureOption));
@@ -147,12 +149,17 @@ void Camera::previewStopped() {
     m_previewThread = nullptr;
 }
 
-void Camera::setPreviewImage(const QImage& preview) {
+void Camera::setPreviewImage(const QImage preview) {
     m_latest_preview = preview;
     m_latest_preview_time = QDateTime::currentDateTimeUtc();
+    std::cout << "emitting preview url changed" << std::endl;
     emit previewUrlChanged(previewUrl());
 }
 
 QString Camera::previewUrl() const {
     return QString::number(m_id) + QString("/") + m_latest_preview_time.toString("dd.MM.yyyy-hh:mm:ss.zzz");
+}
+
+const QImage& Camera::latestPreview() const {
+    return m_latest_preview;
 }

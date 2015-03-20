@@ -163,7 +163,7 @@ Item {
             height: parent.height
             // The "live" image provider has been registered from
             // the C++ code
-            source: "image://live/" + model.url
+            source: "image://live/" + model.previewUrl
         }
 
         // This rectangle will provide the white "glow" when
@@ -251,10 +251,22 @@ Item {
                 Text {
                     color: "white"
                     text: "Info"
+                    font.bold: true
                 }
                 Text {
+                    textFormat: Text.StyledText
                     color: "white"
-                    text: "more info"
+                    text: "<b>Aperture:</b> " + model.aperture
+                }
+                Text {
+                    textFormat: Text.StyledText
+                    color: "white"
+                    text: "<b>Shutter Speed:</b> " + model.shutter
+                }
+                Text {
+                    textFormat: Text.StyledText
+                    color: "white"
+                    text: "<b>ISO:</b> " + model.iso
                 }
             }
         }

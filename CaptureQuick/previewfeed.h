@@ -15,7 +15,7 @@ public:
     ~PreviewFeed();
 
 signals:
-    void newPreviewImage(QImage& preview);
+    void newPreviewImage(QImage preview);
     void stopped();
 public slots:
     void start();
