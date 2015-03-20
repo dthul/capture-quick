@@ -7,8 +7,8 @@
 
 Capture::Capture(QQmlApplicationEngine* const qmlEngine, QObject *parent) :
     QObject(parent),
-    m_qml_engine(qmlEngine),
-    m_live_image_provider(reinterpret_cast<QList<Camera*>*>(&m_cameras))
+    m_qml_engine(qmlEngine)
+    //m_live_image_provider(reinterpret_cast<QList<Camera*>*>(&m_cameras))
 {
     /*
     m_cameras.append(new Camera);
@@ -33,13 +33,23 @@ Capture::Capture(QQmlApplicationEngine* const qmlEngine, QObject *parent) :
         static_cast<Camera*>(camera)->startPreview();
     }
 
-    // LiveImageProvider *liveImgProvider = new LiveImageProvider(&m_cameras);
-    m_qml_engine->addImageProvider("live", &m_live_image_provider);
+    // will be freed by Qt
+    LiveImageProvider *liveImgProvider = new LiveImageProvider(reinterpret_cast<QList<Camera*>*>(&m_cameras));
+    m_qml_engine->addImageProvider("live", liveImgProvider);
 
     m_qml_engine->rootContext()->setContextProperty("cameras", QVariant::fromValue(m_cameras));
 }
 
 Capture::~Capture()
 {
-
+    for (QObject* camera : m_cameras) {
+        static_cast<Camera*>(camera)->stopPreview();
+    }
+    for (QObject* camera : m_cameras) {
+        delete camera;
+    }
+    m_cameras.clear();
+    // This is the call that actually releases the cameras
+    // by destroying the underlying gp::Cameras
+    m_gp_cameras.clear();
 }

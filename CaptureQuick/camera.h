@@ -83,4 +83,11 @@ private:
     QDateTime m_latest_preview_time = QDateTime::currentDateTimeUtc();
 
     static std::atomic_uint s_id;
+    enum CameraState{
+        CAMERA_SHUTDOWN,
+        CAMERA_INIT,
+        CAMERA_PREVIEW,
+        CAMERA_NONE
+    };
+    volatile CameraState m_state;
 };

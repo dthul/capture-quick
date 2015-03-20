@@ -6,22 +6,35 @@ std::atomic_uint Camera::s_id{0};
 
 Camera::Camera(QObject *parent) :
     QObject(parent),
-    m_id(s_id++)
+    m_id(s_id++),
+    m_state(CAMERA_NONE)
 {
 
 }
 
 Camera::Camera(gp::Camera* const gp_camera, QObject *parent) :
     QObject(parent),
+    m_id(s_id++),
     m_camera(gp_camera),
-    m_id(s_id++)
+    m_state(CAMERA_INIT)
 {
-    readConfig();
+    readConfig(); // TODO: read config in a different thread
 }
 
 Camera::~Camera()
 {
-
+    m_state = CAMERA_SHUTDOWN;
+    stopPreview();
+    if (m_previewThread != nullptr) {
+        m_previewThread->quit();
+        // Wait at most 10 seconds for preview threads to stop
+        if (!m_previewThread->wait(10 * 1000))
+            std::cout << "~Camera(" << m_id << ") timed out" << std::endl;
+        else {
+            std::cout << "~Camera(" << m_id << ") joined" << std::endl;
+            readConfig(); // hack: read config to release the UI lock
+        }
+    }
 }
 
 void Camera::readConfig() {
@@ -143,10 +156,15 @@ void Camera::stopPreview() {
 }
 
 void Camera::previewStopped() {
-    delete m_previewFeed;
-    m_previewFeed = nullptr;
-    delete m_previewThread;
-    m_previewThread = nullptr;
+    // Don't delete the preview thread when the destructor has been
+    // called (which sets the state to shutdown) since the destructor
+    // will join this thread.
+    if (m_state != CAMERA_SHUTDOWN) {
+        delete m_previewFeed;
+        m_previewFeed = nullptr;
+        delete m_previewThread;
+        m_previewThread = nullptr;
+    }
 }
 
 void Camera::setPreviewImage(const QImage preview) {
