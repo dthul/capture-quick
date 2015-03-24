@@ -7,8 +7,8 @@ CONFIG += c++11
 SOURCES += main.cpp \
     liveimageprovider.cpp \
     camera.cpp \
-    previewfeed.cpp \
-    capture.cpp
+    capture.cpp \
+    cameracontroller.cpp
 
 RESOURCES += qml.qrc \
     images.qrc
@@ -22,8 +22,8 @@ include(deployment.pri)
 HEADERS += \
     liveimageprovider.h \
     camera.h \
-    previewfeed.h \
-    capture.h
+    capture.h \
+    cameracontroller.h
 
 # For MacPorts
 QMAKE_LIBDIR += /opt/local/lib

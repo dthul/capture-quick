@@ -8,7 +8,7 @@
 #include <QString>
 #include <QThread>
 
-#include "previewfeed.h"
+#include "cameracontroller.h"
 #include "gputil.h"
 
 class Camera : public QObject
@@ -62,8 +62,13 @@ signals:
 
 public slots:
 private slots:
-    void previewStopped();
     void setPreviewImage(const QImage preview);
+    void setApertureChoices(const QList<QString>& newApertureChoices);
+    void setShutterChoices(const QList<QString>& newShutterChoices);
+    void setIsoChoices(const QList<QString>& newIsoChoices);
+    void setApertureIndex(const int aperture);
+    void setShutterIndex(const int shutter);
+    void setIsoIndex(const int iso);
 private:
     void readConfig();
 
@@ -76,8 +81,8 @@ private:
     int m_aperture = -1;
     int m_shutter = -1;
     int m_iso = -1;
-    QThread* m_previewThread = nullptr;
-    PreviewFeed* m_previewFeed = nullptr;
+    QThread* m_controllerThread = nullptr;
+    CameraController* m_controller = nullptr;
 
     QImage m_latest_preview = QImage(":/testchart.png");
     QDateTime m_latest_preview_time = QDateTime::currentDateTimeUtc();

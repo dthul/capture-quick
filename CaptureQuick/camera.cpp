@@ -16,63 +16,44 @@ Camera::Camera(gp::Camera* const gp_camera, QObject *parent) :
     QObject(parent),
     m_id(s_id++),
     m_camera(gp_camera),
+    m_controllerThread(new QThread()),
+    m_controller(new CameraController(gp_camera)),
     m_state(CAMERA_INIT)
 {
-    readConfig(); // TODO: read config in a different thread
+    // Move the camera controller to it's own thread and connect the signals
+    m_controller->moveToThread(m_controllerThread);
+    connect(m_controller, &CameraController::newPreviewImage, this, &Camera::setPreviewImage);
+    connect(m_controller, &CameraController::apertureChoicesChanged, this, &Camera::setApertureChoices);
+    connect(m_controller, &CameraController::apertureChanged, this, &Camera::setApertureIndex);
+    connect(m_controller, &CameraController::shutterChoicesChanged, this, &Camera::setShutterChoices);
+    connect(m_controller, &CameraController::shutterChanged, this, &Camera::setShutterIndex);
+    connect(m_controller, &CameraController::isoChoicesChanged, this, &Camera::setIsoChoices);
+    connect(m_controller, &CameraController::isoChanged, this, &Camera::setIsoIndex);
+    connect(m_controllerThread, &QThread::finished, this, &Camera::previewStopped);
+    m_controllerThread->start();
+
+    // Read this camera's config
+    readConfig();
 }
 
 Camera::~Camera()
 {
     m_state = CAMERA_SHUTDOWN;
     stopPreview();
-    if (m_previewThread != nullptr) {
-        m_previewThread->quit();
+    if (m_controllerThread != nullptr) {
+        m_controllerThread->quit();
         // Wait at most 10 seconds for preview threads to stop
-        if (!m_previewThread->wait(10 * 1000))
+        if (!m_controllerThread->wait(10 * 1000))
             std::cout << "~Camera(" << m_id << ") timed out" << std::endl;
         else {
             std::cout << "~Camera(" << m_id << ") joined" << std::endl;
-            readConfig(); // hack: read config to release the UI lock
         }
     }
 }
 
 void Camera::readConfig() {
-    // Clear the old settings
-    m_aperture = -1;
-    m_apertureChoices.clear();
-    m_shutter = -1;
-    m_shutterChoices.clear();
-    m_iso = -1;
-    m_isoChoices.clear();
-
-    if (m_camera != nullptr) {
-        // Read the new settings from the camera
-        const gp::Widget configWidget = m_camera->config();
-        gp::Aperture apertureConfig = configWidget["aperture"].get<gp::Aperture>();
-        gp::ShutterSpeed shutterConfig = configWidget["shutterspeed"].get<gp::ShutterSpeed>();
-        gp::Iso isoConfig = configWidget["iso"].get<gp::Iso>();
-
-        for (const auto& apertureOption : apertureConfig.choices())
-            m_apertureChoices.append(QString::fromStdString(apertureOption));
-        m_aperture = apertureConfig.index();
-
-        for (const auto& shutterOption : shutterConfig.choices())
-            m_shutterChoices.append(QString::fromStdString(shutterOption));
-        m_shutter = shutterConfig.index();
-
-        for (const auto& isoOption : isoConfig.choices())
-            m_isoChoices.append(QString::fromStdString(isoOption));
-        m_iso = isoConfig.index();
-    }
-
-    // Notify all observers about the change in settings
-    emit apertureChanged(aperture());
-    emit apertureChoicesChanged(m_apertureChoices);
-    emit shutterChanged(shutter());
-    emit shutterChoicesChanged(m_shutterChoices);
-    emit isoChanged(iso());
-    emit isoChoicesChanged(m_isoChoices);
+    if (m_controller != nullptr)
+        QMetaObject::invokeMethod(m_controller, "readConfig", Qt::QueuedConnection);
 }
 
 QString Camera::aperture() const {
@@ -123,6 +104,30 @@ void Camera::setIso(const QString &iso) {
     }
 }
 
+void Camera::setApertureIndex(const int aperture) {
+    if (aperture >= 0 && aperture < m_apertureChoices.size())
+        m_aperture = aperture;
+    else
+        m_aperture = -1;
+    emit apertureChanged(aperture());
+}
+
+void Camera::setShutterIndex(const int shutter) {
+    if (shutter >= 0 && shutter < m_shutterChoices.size())
+        m_shutter = shutter;
+    else
+        m_shutter = -1;
+    emit shutterChanged(shutter());
+}
+
+void Camera::setIsoIndex(const int iso) {
+    if (iso >= 0 && iso < m_isoChoices.size())
+        m_iso = iso;
+    else
+        m_iso = -1;
+    emit isoChanged(iso());
+}
+
 QList<QString> Camera::apertureChoices() const {
     return m_apertureChoices;
 }
@@ -135,36 +140,41 @@ QList<QString> Camera::isoChoices() const {
     return m_isoChoices;
 }
 
+void Camera::setApertureChoices(const QList<QString>& newApertureChoices) {
+    m_apertureChoices = newApertureChoices;
+    if (m_aperture >= m_apertureChoices.size()) {
+        m_aperture = m_apertureChoices.size() == 0 ? -1 : 0;
+        emit apertureChanged(m_aperture);
+    }
+    emit apertureChoicesChanged(m_apertureChoices);
+}
+
+void Camera::setShutterChoices(const QList<QString>& newShutterChoices) {
+    m_shutterChoices = newShutterChoices;
+    if (m_shutter >= m_shutterChoices.size()) {
+        m_shutter = m_shutterChoices.size() == 0 ? -1 : 0;
+        emit shutterChanged(m_shutter);
+    }
+    emit shutterChoicesChanged(m_shutterChoices);
+}
+
+void Camera::setIsoChoices(const QList<QString>& newIsoChoices) {
+    m_isoChoices = newIsoChoices;
+    if (m_iso >= m_isoChoices.size()) {
+        m_iso = m_isoChoices.size() == 0 ? -1 : 0;
+        emit isoChanged(m_iso);
+    }
+    emit isoChoicesChanged(m_isoChoices);
+}
+
 void Camera::startPreview() {
-    if (m_previewThread != nullptr)
-        return;
-    m_previewThread = new QThread;
-    m_previewFeed = new PreviewFeed(m_camera);
-    m_previewFeed->moveToThread(m_previewThread);
-    connect(m_previewThread, &QThread::started, m_previewFeed, &PreviewFeed::start);
-    connect(m_previewFeed, &PreviewFeed::stopped, m_previewThread, &QThread::quit);
-    connect(m_previewFeed, &PreviewFeed::newPreviewImage, this, &Camera::setPreviewImage);
-    connect(m_previewThread, &QThread::finished, this, &Camera::previewStopped);
-    m_previewThread->start();
+    if (m_controller != nullptr)
+        QMetaObject::invokeMethod(m_controller, "startPreview", Qt::QueuedConnection);
 }
 
 void Camera::stopPreview() {
-    if (m_previewFeed != nullptr) {
-        m_previewFeed->stop();
-        // QMetaObject::invokeMethod(m_previewFeed, "stop", Qt::QueuedConnection);
-    }
-}
-
-void Camera::previewStopped() {
-    // Don't delete the preview thread when the destructor has been
-    // called (which sets the state to shutdown) since the destructor
-    // will join this thread.
-    if (m_state != CAMERA_SHUTDOWN) {
-        delete m_previewFeed;
-        m_previewFeed = nullptr;
-        delete m_previewThread;
-        m_previewThread = nullptr;
-    }
+    if (m_controller != nullptr)
+        m_controller->stopPreview();
 }
 
 void Camera::setPreviewImage(const QImage preview) {
