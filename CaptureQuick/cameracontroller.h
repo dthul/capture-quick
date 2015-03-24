@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QImage>
 #include <QObject>
 
 #include "gputil.h"
@@ -26,11 +27,11 @@ signals:
     void previewStarted();
     void previewStopped();
 public slots:
-    void readConfig() const;
+    void readConfig();
     void startPreview();
     void stopPreview();
 private slots:
-    void capturePreview() const;
+    void capturePreview();
 private:
     gp::Camera *m_camera;
     volatile bool m_previewRunning;

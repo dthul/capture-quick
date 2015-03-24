@@ -29,7 +29,7 @@ Camera::Camera(gp::Camera* const gp_camera, QObject *parent) :
     connect(m_controller, &CameraController::shutterChanged, this, &Camera::setShutterIndex);
     connect(m_controller, &CameraController::isoChoicesChanged, this, &Camera::setIsoChoices);
     connect(m_controller, &CameraController::isoChanged, this, &Camera::setIsoIndex);
-    connect(m_controllerThread, &QThread::finished, this, &Camera::previewStopped);
+    // connect(m_controllerThread, &QThread::finished, this, &Camera::previewStopped);
     m_controllerThread->start();
 
     // Read this camera's config
@@ -109,7 +109,7 @@ void Camera::setApertureIndex(const int aperture) {
         m_aperture = aperture;
     else
         m_aperture = -1;
-    emit apertureChanged(aperture());
+    emit apertureChanged(this->aperture());
 }
 
 void Camera::setShutterIndex(const int shutter) {
@@ -117,7 +117,7 @@ void Camera::setShutterIndex(const int shutter) {
         m_shutter = shutter;
     else
         m_shutter = -1;
-    emit shutterChanged(shutter());
+    emit shutterChanged(this->shutter());
 }
 
 void Camera::setIsoIndex(const int iso) {
@@ -125,7 +125,7 @@ void Camera::setIsoIndex(const int iso) {
         m_iso = iso;
     else
         m_iso = -1;
-    emit isoChanged(iso());
+    emit isoChanged(this->iso());
 }
 
 QList<QString> Camera::apertureChoices() const {
@@ -144,7 +144,7 @@ void Camera::setApertureChoices(const QList<QString>& newApertureChoices) {
     m_apertureChoices = newApertureChoices;
     if (m_aperture >= m_apertureChoices.size()) {
         m_aperture = m_apertureChoices.size() == 0 ? -1 : 0;
-        emit apertureChanged(m_aperture);
+        emit apertureChanged(aperture());
     }
     emit apertureChoicesChanged(m_apertureChoices);
 }
@@ -153,7 +153,7 @@ void Camera::setShutterChoices(const QList<QString>& newShutterChoices) {
     m_shutterChoices = newShutterChoices;
     if (m_shutter >= m_shutterChoices.size()) {
         m_shutter = m_shutterChoices.size() == 0 ? -1 : 0;
-        emit shutterChanged(m_shutter);
+        emit shutterChanged(shutter());
     }
     emit shutterChoicesChanged(m_shutterChoices);
 }
@@ -162,7 +162,7 @@ void Camera::setIsoChoices(const QList<QString>& newIsoChoices) {
     m_isoChoices = newIsoChoices;
     if (m_iso >= m_isoChoices.size()) {
         m_iso = m_isoChoices.size() == 0 ? -1 : 0;
-        emit isoChanged(m_iso);
+        emit isoChanged(iso());
     }
     emit isoChoicesChanged(m_isoChoices);
 }

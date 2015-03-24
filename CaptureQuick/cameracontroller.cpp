@@ -1,5 +1,8 @@
 #include "cameracontroller.h"
 
+#include <iostream>
+
+#include <QImage>
 #include <QMetaObject>
 
 CameraController::CameraController(gp::Camera *camera, QObject *parent) :
@@ -26,13 +29,13 @@ void CameraController::stopPreview() {
     emit previewStopped();
 }
 
-void CameraController::readConfig() const {
+void CameraController::readConfig() {
     int aperture = -1;
-    std::vector<QString> apertureChoices;
+    QList<QString> apertureChoices;
     int shutter = -1;
-    std::vector<QString> shutterChoices;
+    QList<QString> shutterChoices;
     int iso = -1;
-    std::vector<QString> isoChoices;
+    QList<QString> isoChoices;
 
     if (m_camera != nullptr) {
         // Read the new settings from the camera
@@ -63,7 +66,7 @@ void CameraController::readConfig() const {
     emit isoChanged(iso);
 }
 
-void CameraController::capturePreview() const {
+void CameraController::capturePreview() {
     if (!m_previewRunning)
         return;
     JpegBuffer jpeg;
