@@ -20,12 +20,10 @@ LiveImageProvider::~LiveImageProvider()
 }
 
 QImage LiveImageProvider::requestImage(const QString &url, QSize *size, const QSize &requestedSize) {
-    std::cout << "Request for image " << url.toStdString() << std::endl;
     *size = m_default_image.size();
     if(!url_regex.exactMatch(url))
         return m_default_image;
     const QString id_str = url_regex.capturedTexts()[1];
-    std::cout << "id string: " << id_str.toStdString() << std::endl;
     bool ok;
     const uint id = id_str.toUInt(&ok);
     if (!ok)

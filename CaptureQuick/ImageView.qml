@@ -256,6 +256,11 @@ Item {
                 Text {
                     textFormat: Text.StyledText
                     color: "white"
+                    text: "<b>Name:</b> " + model.name
+                }
+                Text {
+                    textFormat: Text.StyledText
+                    color: "white"
                     text: "<b>Aperture:</b> " + model.aperture
                 }
                 Text {

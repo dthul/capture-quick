@@ -15,6 +15,8 @@ class Camera : public QObject
 {
     Q_OBJECT
 
+    Q_PROPERTY(QString name READ name NOTIFY nameChanged)
+
     Q_PROPERTY(QString previewUrl READ previewUrl NOTIFY previewUrlChanged)
 
     // Define some properties so that they are accessible from QML
@@ -30,6 +32,7 @@ public:
     Camera(gp::Camera* const gp_camera, QObject *parent = 0);
     ~Camera();
 
+    QString name() const;
     QString aperture() const;
     void setAperture(const QString &aperture);
     QString shutter() const;
@@ -50,6 +53,8 @@ public:
     const uint m_id;
 
 signals:
+    void nameChanged(const QString& newName);
+
     void apertureChanged(const QString& newAperture);
     void shutterChanged(const QString& newShutter);
     void isoChanged(const QString& newIso);
@@ -62,6 +67,7 @@ signals:
 
 public slots:
 private slots:
+    void setName(const QString& name);
     void setPreviewImage(const QImage preview);
     void setApertureChoices(const QList<QString>& newApertureChoices);
     void setShutterChoices(const QList<QString>& newShutterChoices);
@@ -78,6 +84,7 @@ private:
     QList<QString> m_shutterChoices;
     QList<QString> m_isoChoices;
 
+    QString m_name;
     int m_aperture = -1;
     int m_shutter = -1;
     int m_iso = -1;

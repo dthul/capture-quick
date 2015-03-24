@@ -40,9 +40,12 @@ void CameraController::readConfig() {
     if (m_camera != nullptr) {
         // Read the new settings from the camera
         const gp::Widget configWidget = m_camera->config();
+        std::string name = configWidget["artist"].get<std::string>();
         gp::Aperture apertureConfig = configWidget["aperture"].get<gp::Aperture>();
         gp::ShutterSpeed shutterConfig = configWidget["shutterspeed"].get<gp::ShutterSpeed>();
         gp::Iso isoConfig = configWidget["iso"].get<gp::Iso>();
+
+        emit nameChanged(QString::fromStdString(name));
 
         for (const auto& apertureOption : apertureConfig.choices())
             apertureChoices.append(QString::fromStdString(apertureOption));
@@ -71,12 +74,10 @@ void CameraController::capturePreview() {
         return;
     JpegBuffer jpeg;
     try {
-        std::cout << "Waiting for preview..." << std::endl;
         jpeg = m_camera->preview();
         if (m_previewRunning) {
             // Convert the buffer containing jpeg data to a QImage
             QImage previewImage(QImage::fromData(reinterpret_cast<const uchar*>(jpeg.data()), jpeg.size()));
-            std::cout << "emitting new preview image" << std::endl;
             emit newPreviewImage(previewImage);
         }
     } catch (gp::Exception& ex) {

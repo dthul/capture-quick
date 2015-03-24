@@ -14,6 +14,8 @@ public:
     ~CameraController();
 
 signals:
+    void nameChanged(const QString& name);
+
     void apertureChanged(const int newAperture);
     void shutterChanged(const int newShutter);
     void isoChanged(const int newIso);

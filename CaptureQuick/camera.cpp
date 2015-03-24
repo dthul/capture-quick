@@ -22,6 +22,7 @@ Camera::Camera(gp::Camera* const gp_camera, QObject *parent) :
 {
     // Move the camera controller to it's own thread and connect the signals
     m_controller->moveToThread(m_controllerThread);
+    connect(m_controller, &CameraController::nameChanged, this, &Camera::setName);
     connect(m_controller, &CameraController::newPreviewImage, this, &Camera::setPreviewImage);
     connect(m_controller, &CameraController::apertureChoicesChanged, this, &Camera::setApertureChoices);
     connect(m_controller, &CameraController::apertureChanged, this, &Camera::setApertureIndex);
@@ -54,6 +55,15 @@ Camera::~Camera()
 void Camera::readConfig() {
     if (m_controller != nullptr)
         QMetaObject::invokeMethod(m_controller, "readConfig", Qt::QueuedConnection);
+}
+
+QString Camera::name() const {
+    return m_name;
+}
+
+void Camera::setName(const QString& name) {
+    m_name = name;
+    emit nameChanged(m_name);
 }
 
 QString Camera::aperture() const {
