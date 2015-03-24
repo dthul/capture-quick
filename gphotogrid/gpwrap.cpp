@@ -255,7 +255,8 @@ void Camera::save_preview(const std::string& fname) {
 }
 
 CameraEvent Camera::wait_event(int timeout_msec) {
-	CameraEventType eventtype;
+    std::lock_guard<std::mutex> g(mutex);
+    CameraEventType eventtype;
 	void* eventdata = nullptr;
 	int ret = gp_camera_wait_for_event(camera, timeout_msec, &eventtype, &eventdata, ctx->context);
 	if (ret < GP_OK)

@@ -1,6 +1,9 @@
 #include "cameraeventlistener.h"
 
+#include <iostream>
+
 #include <QMetaObject>
+#include <QThread>
 
 CameraEventListener::CameraEventListener(gp::Camera *camera, QObject *parent) :
     QObject(parent),
@@ -27,8 +30,18 @@ void CameraEventListener::waitForEvent() {
     if (!m_listen)
         return;
 
-    gp::CameraEvent ev = m_camera->wait_event(2);
+    try {
+        gp::CameraEvent ev = m_camera->wait_event(1);
+        handleEvent(ev);
+    } catch (gp::Exception& e) {
+        QThread::sleep(1);
+    }
 
+    if (m_listen)
+        QMetaObject::invokeMethod(this, "waitForEvent", Qt::QueuedConnection);
+}
+
+void CameraEventListener::handleEvent(const gp::CameraEvent& ev) {
     using Ce = gp::CameraEvent;
 
     /*
@@ -38,6 +51,7 @@ void CameraEventListener::waitForEvent() {
                 << ev.type() << ": " << ev.typestr();
     }
     */
+    std::cout << "got event" << std::endl;
 
     switch (ev.type()) {
     case Ce::EVENT_UNKNOWN:
@@ -82,7 +96,4 @@ void CameraEventListener::waitForEvent() {
         }*/
         break;
     }
-
-    if (m_listen)
-        QMetaObject::invokeMethod(this, "waitForEvent", Qt::QueuedConnection);
 }

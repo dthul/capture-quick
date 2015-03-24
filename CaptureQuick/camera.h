@@ -94,8 +94,8 @@ private:
     QThread *m_eventListenerThread = nullptr;
     CameraEventListener *m_eventListener = nullptr;
 
-    QImage m_latest_preview = QImage(":/testchart.png");
-    QDateTime m_latest_preview_time = QDateTime::currentDateTimeUtc();
+    QImage m_latest_preview;
+    QDateTime m_latest_preview_time;
 
     static std::atomic_uint s_id;
     enum CameraState{

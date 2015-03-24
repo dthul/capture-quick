@@ -7,6 +7,8 @@ std::atomic_uint Camera::s_id{0};
 Camera::Camera(QObject *parent) :
     QObject(parent),
     m_id(s_id++),
+    m_latest_preview(":/testchart.png"),
+    m_latest_preview_time(QDateTime::currentDateTimeUtc()),
     m_state(CAMERA_NONE)
 {
 
@@ -20,6 +22,8 @@ Camera::Camera(gp::Camera* const gp_camera, QObject *parent) :
     m_controller(new CameraController(gp_camera)),
     m_eventListenerThread(new QThread()),
     m_eventListener(new CameraEventListener(gp_camera)),
+    m_latest_preview(":/testchart.png"),
+    m_latest_preview_time(QDateTime::currentDateTimeUtc()),
     m_state(CAMERA_INIT)
 {
     // Move the camera controller to it's own thread and connect the signals
@@ -51,8 +55,23 @@ Camera::~Camera()
     stopPreview();
     if (m_controllerThread != nullptr) {
         m_controllerThread->quit();
-        // Wait at most 10 seconds for thread to stop
-        if (!m_controllerThread->wait(10 * 1000))
+    }
+
+    if (m_eventListener)
+        m_eventListener->stopListening();
+    if (m_eventListenerThread)
+        m_eventListenerThread->quit();
+    if (m_controllerThread) {
+        // Wait at most 5 seconds for thread to stop
+        if (!m_controllerThread->wait(5 * 1000))
+            std::cout << "~Camera(" << m_id << ") timed out" << std::endl;
+        else {
+            std::cout << "~Camera(" << m_id << ") joined" << std::endl;
+        }
+    }
+    if (m_eventListenerThread) {
+        // Wait at most 5 seconds for thread to stop
+        if (!m_eventListenerThread->wait(5 * 1000))
             std::cout << "~Camera(" << m_id << ") timed out" << std::endl;
         else {
             std::cout << "~Camera(" << m_id << ") joined" << std::endl;
@@ -60,6 +79,8 @@ Camera::~Camera()
     }
     delete m_controller;
     delete m_controllerThread;
+    delete m_eventListener;
+    delete m_eventListenerThread;
 }
 
 void Camera::readConfig() {

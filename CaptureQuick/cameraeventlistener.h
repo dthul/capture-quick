@@ -19,6 +19,7 @@ public slots:
 private slots:
     void waitForEvent();
 private:
+    void handleEvent(const gp::CameraEvent& ev);
     gp::Camera *m_camera = nullptr;
     volatile bool m_listen;
 };
