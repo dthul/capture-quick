@@ -18,6 +18,8 @@ Camera::Camera(gp::Camera* const gp_camera, QObject *parent) :
     m_camera(gp_camera),
     m_controllerThread(new QThread()),
     m_controller(new CameraController(gp_camera)),
+    m_eventListenerThread(new QThread()),
+    m_eventListener(new CameraEventListener(gp_camera)),
     m_state(CAMERA_INIT)
 {
     // Move the camera controller to it's own thread and connect the signals
@@ -33,6 +35,12 @@ Camera::Camera(gp::Camera* const gp_camera, QObject *parent) :
     // connect(m_controllerThread, &QThread::finished, this, &Camera::previewStopped);
     m_controllerThread->start();
 
+    // Move the event listener to it's own thread and connect signals
+    m_eventListener->moveToThread(m_eventListenerThread);
+    // Start listeing to events as soon as the thread starts
+    connect(m_eventListenerThread, &QThread::started, m_eventListener, &CameraEventListener::startListening);
+    m_eventListenerThread->start();
+
     // Read this camera's config
     readConfig();
 }
@@ -43,13 +51,15 @@ Camera::~Camera()
     stopPreview();
     if (m_controllerThread != nullptr) {
         m_controllerThread->quit();
-        // Wait at most 10 seconds for preview threads to stop
+        // Wait at most 10 seconds for thread to stop
         if (!m_controllerThread->wait(10 * 1000))
             std::cout << "~Camera(" << m_id << ") timed out" << std::endl;
         else {
             std::cout << "~Camera(" << m_id << ") joined" << std::endl;
         }
     }
+    delete m_controller;
+    delete m_controllerThread;
 }
 
 void Camera::readConfig() {

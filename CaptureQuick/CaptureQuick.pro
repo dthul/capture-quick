@@ -8,7 +8,8 @@ SOURCES += main.cpp \
     liveimageprovider.cpp \
     camera.cpp \
     capture.cpp \
-    cameracontroller.cpp
+    cameracontroller.cpp \
+    cameraeventlistener.cpp
 
 RESOURCES += qml.qrc \
     images.qrc
@@ -23,7 +24,8 @@ HEADERS += \
     liveimageprovider.h \
     camera.h \
     capture.h \
-    cameracontroller.h
+    cameracontroller.h \
+    cameraeventlistener.h
 
 # For MacPorts
 QMAKE_LIBDIR += /opt/local/lib

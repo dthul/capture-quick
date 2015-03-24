@@ -9,6 +9,7 @@
 #include <QThread>
 
 #include "cameracontroller.h"
+#include "cameraeventlistener.h"
 #include "gputil.h"
 
 class Camera : public QObject
@@ -88,8 +89,10 @@ private:
     int m_aperture = -1;
     int m_shutter = -1;
     int m_iso = -1;
-    QThread* m_controllerThread = nullptr;
-    CameraController* m_controller = nullptr;
+    QThread *m_controllerThread = nullptr;
+    CameraController *m_controller = nullptr;
+    QThread *m_eventListenerThread = nullptr;
+    CameraEventListener *m_eventListener = nullptr;
 
     QImage m_latest_preview = QImage(":/testchart.png");
     QDateTime m_latest_preview_time = QDateTime::currentDateTimeUtc();
