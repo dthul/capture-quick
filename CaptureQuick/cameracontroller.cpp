@@ -31,11 +31,11 @@ void CameraController::stopPreview() {
 
 void CameraController::readConfig() {
     int aperture = -1;
-    QList<QString> apertureChoices;
+    QStringList apertureChoices;
     int shutter = -1;
-    QList<QString> shutterChoices;
+    QStringList shutterChoices;
     int iso = -1;
-    QList<QString> isoChoices;
+    QStringList isoChoices;
 
     if (m_camera != nullptr) {
         // Read the new settings from the camera
@@ -85,4 +85,31 @@ void CameraController::capturePreview() {
     }
     if (m_previewRunning) // queue new preview capture
         QMetaObject::invokeMethod(this, "capturePreview", Qt::QueuedConnection);
+}
+
+template <class Obj>
+void CameraController::setRadioConfig(int value) {
+    auto cfg = m_camera->config()[Obj::gpname];
+    auto radio = cfg.template get<Obj>();
+
+    if (value >= 0 && value < radio.size()) {
+        radio.set(value);
+        cfg.set(radio);
+        std::cout << " new " << Obj::gpname << " " << radio.text() << std::endl;
+    }
+}
+
+void CameraController::setAperture(const int index) {
+    setRadioConfig<gp::Aperture>(index);
+    emit apertureChanged(index);
+}
+
+void CameraController::setShutter(const int index) {
+    setRadioConfig<gp::ShutterSpeed>(index);
+    emit shutterChanged(index);
+}
+
+void CameraController::setIso(const int index) {
+    setRadioConfig<gp::Iso>(index);
+    emit isoChanged(index);
 }

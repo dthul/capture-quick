@@ -103,7 +103,7 @@ ApplicationWindow {
                 }
             }
 
-            ColumnLayout {
+            /*ColumnLayout {
                 id: columnLayout1
                 width: 100
                 height: 100
@@ -117,7 +117,7 @@ ApplicationWindow {
                     text: qsTr("Press me")
                     id: button1
                 }
-            }
+            }*/
         }
     }
 

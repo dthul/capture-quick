@@ -1,4 +1,5 @@
 import QtQuick 2.4
+import QtQuick.Controls 1.3
 import QtQuick.Layouts 1.1
 
 Item {
@@ -104,6 +105,10 @@ Item {
 
         z: 0
 
+        Rectangle {
+            anchors.fill: parent
+            color: 'grey'
+        }
         // This is the overlayed image that the user will actually see
         // when opening the overlay
         Image {
@@ -121,8 +126,7 @@ Item {
         id: imageArea
         anchors.fill: parent
         hoverEnabled: true
-        onEntered: state = "hovered"
-        onExited: state = ""
+        state: containsMouse ? "hovered" : ""
 
         states: State {
             name: "hovered"
@@ -153,6 +157,10 @@ Item {
             }
         ]
 
+        Rectangle {
+            anchors.fill: parent
+            color: 'grey'
+        }
         // This is the image that is actually visible in
         // the image grid.
         Image {
@@ -245,6 +253,7 @@ Item {
             radius: 10
             opacity: 0
             anchors.fill: parent
+            enabled: info.state == "visible"
             ColumnLayout {
                 id: infoPanel
                 anchors.centerIn: parent
@@ -263,15 +272,86 @@ Item {
                     color: "white"
                     text: "<b>Aperture:</b> " + model.aperture
                 }
+                RowLayout {
+                    spacing: 0
+                    ComboBox {
+                        id: apertureComboBox
+                        model: imageView.model.apertureChoices
+                        property int selectedIndex: imageView.model.apertureIndex
+                        onSelectedIndexChanged: {
+                            if (currentIndex != selectedIndex)
+                                currentIndex = selectedIndex
+                        }
+                        onCurrentIndexChanged: {
+                            if (currentIndex != selectedIndex)
+                                imageView.model.apertureIndex = currentIndex
+                        }
+
+                        // The following intuitive property binding does not work so the
+                        // onSelectedIndexChanged and onCurrentIndexChanged listeners
+                        // are used instead.
+                        // currentIndex: imageView.model.apertureIndex
+                    }
+                    BusyIndicator {
+                        Layout.maximumHeight: apertureComboBox.height
+                        Layout.maximumWidth: apertureComboBox.height
+                        running: apertureComboBox.currentIndex != apertureComboBox.selectedIndex
+                        scale: 0.6
+                    }
+                }
                 Text {
                     textFormat: Text.StyledText
                     color: "white"
                     text: "<b>Shutter Speed:</b> " + model.shutter
                 }
+                RowLayout {
+                    spacing: 0
+                    ComboBox {
+                        id: shutterComboBox
+                        model: imageView.model.shutterChoices
+                        property int selectedIndex: imageView.model.shutterIndex
+                        onSelectedIndexChanged: {
+                            if (currentIndex != selectedIndex)
+                                currentIndex = selectedIndex
+                        }
+                        onCurrentIndexChanged: {
+                            if (currentIndex != selectedIndex)
+                                imageView.model.shutterIndex = currentIndex
+                        }
+                    }
+                    BusyIndicator {
+                        Layout.maximumHeight: shutterComboBox.height
+                        Layout.maximumWidth: shutterComboBox.height
+                        running: shutterComboBox.currentIndex != shutterComboBox.selectedIndex
+                        scale: 0.6
+                    }
+                }
                 Text {
                     textFormat: Text.StyledText
                     color: "white"
                     text: "<b>ISO:</b> " + model.iso
+                }
+                RowLayout {
+                    spacing: 0
+                    ComboBox {
+                        id: isoComboBox
+                        model: imageView.model.isoChoices
+                        property int selectedIndex: imageView.model.isoIndex
+                        onSelectedIndexChanged: {
+                            if (currentIndex != selectedIndex)
+                                currentIndex = selectedIndex
+                        }
+                        onCurrentIndexChanged: {
+                            if (currentIndex != selectedIndex)
+                                imageView.model.isoIndex = currentIndex
+                        }
+                    }
+                    BusyIndicator {
+                        Layout.maximumHeight: isoComboBox.height
+                        Layout.maximumWidth: isoComboBox.height
+                        running: isoComboBox.currentIndex != isoComboBox.selectedIndex
+                        scale: 0.6
+                    }
                 }
             }
         }
@@ -283,6 +363,7 @@ Item {
             anchors.rightMargin: 5
             width: infoImg.width
             height: infoImg.height
+
             Image {
                 id: infoImg
                 source: "qrc:/close.svg"

@@ -51,7 +51,7 @@ void CameraEventListener::handleEvent(const gp::CameraEvent& ev) {
                 << ev.type() << ": " << ev.typestr();
     }
     */
-    std::cout << "got event" << std::endl;
+    //std::cout << "got event" << std::endl;
 
     switch (ev.type()) {
     case Ce::EVENT_UNKNOWN:
