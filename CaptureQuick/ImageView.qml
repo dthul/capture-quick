@@ -1,5 +1,6 @@
 import QtQuick 2.4
 import QtQuick.Controls 1.3
+import QtQuick.Controls.Styles 1.3
 import QtQuick.Layouts 1.1
 
 Item {
@@ -297,6 +298,25 @@ Item {
                         Layout.maximumWidth: apertureComboBox.height
                         running: apertureComboBox.currentIndex != apertureComboBox.selectedIndex
                         scale: 0.6
+                        style: BusyIndicatorStyle {
+                            indicator: Image {
+                                //visible: control.running
+                                opacity: control.running ? 1 : 0
+                                source: "busyindicator.png"
+                                RotationAnimator on rotation {
+                                    running: control.running
+                                    loops: Animation.Infinite
+                                    duration: 1000
+                                    from: 0
+                                    to: 360
+                                }
+                                Behavior on opacity {
+                                    NumberAnimation {
+                                        duration: 150
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 Text {
