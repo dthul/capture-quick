@@ -69,6 +69,48 @@ void CameraController::readConfig() {
     emit isoChanged(iso);
 }
 
+void CameraController::readAperture() {
+    int aperture = -1;
+
+    if (m_camera != nullptr) {
+        // Read the new settings from the camera
+        const gp::Widget configWidget = m_camera->config();
+        gp::Aperture apertureConfig = configWidget["aperture"].get<gp::Aperture>();
+        aperture = apertureConfig.index();
+    }
+
+    // Notify all observers about the change in settings
+    emit apertureChanged(aperture);;
+}
+
+void CameraController::readShutter() {
+    int shutter = -1;
+
+    if (m_camera != nullptr) {
+        // Read the new settings from the camera
+        const gp::Widget configWidget = m_camera->config();
+        gp::ShutterSpeed shutterConfig = configWidget["shutterspeed"].get<gp::ShutterSpeed>();
+        shutter = shutterConfig.index();
+    }
+
+    // Notify all observers about the change in settings
+    emit shutterChanged(shutter);;
+}
+
+void CameraController::readIso() {
+    int iso = -1;
+
+    if (m_camera != nullptr) {
+        // Read the new settings from the camera
+        const gp::Widget configWidget = m_camera->config();
+        gp::Iso isoConfig = configWidget["iso"].get<gp::Iso>();
+        iso = isoConfig.index();
+    }
+
+    // Notify all observers about the change in settings
+    emit isoChanged(iso);;
+}
+
 void CameraController::capturePreview() {
     if (!m_previewRunning)
         return;
@@ -101,15 +143,36 @@ void CameraController::setRadioConfig(int value) {
 
 void CameraController::setAperture(const int index) {
     setRadioConfig<gp::Aperture>(index);
-    emit apertureChanged(index);
+    // Strictly speaking we don't need to call
+    // readAperture() since the event listener
+    // will notice the change and trigger a read.
+    // But especially shortly after the program
+    // has started it will take a long time for this
+    // event to come through so update it immediately
+    // instead.
+    readAperture();
 }
 
 void CameraController::setShutter(const int index) {
     setRadioConfig<gp::ShutterSpeed>(index);
-    emit shutterChanged(index);
+    // Strictly speaking we don't need to call
+    // readShutter() since the event listener
+    // will notice the change and trigger a read.
+    // But especially shortly after the program
+    // has started it will take a long time for this
+    // event to come through so update it immediately
+    // instead.
+    readShutter();
 }
 
 void CameraController::setIso(const int index) {
     setRadioConfig<gp::Iso>(index);
-    emit isoChanged(index);
+    // Strictly speaking we don't need to call
+    // readIso() since the event listener
+    // will notice the change and trigger a read.
+    // But especially shortly after the program
+    // has started it will take a long time for this
+    // event to come through so update it immediately
+    // instead.
+    readIso();
 }

@@ -12,7 +12,9 @@ public:
     ~CameraEventListener();
 
 signals:
-
+    void apertureChanged();
+    void shutterChanged();
+    void isoChanged();
 public slots:
     void startListening();
     void stopListening();

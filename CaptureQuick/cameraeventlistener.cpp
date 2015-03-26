@@ -3,6 +3,8 @@
 #include <iostream>
 
 #include <QMetaObject>
+#include <QRegExp>
+#include <QStringList>
 #include <QThread>
 
 CameraEventListener::CameraEventListener(gp::Camera *camera, QObject *parent) :
@@ -41,6 +43,7 @@ void CameraEventListener::waitForEvent() {
         QMetaObject::invokeMethod(this, "waitForEvent", Qt::QueuedConnection);
 }
 
+const QRegExp ptp_property_regex("^PTP Property ([0-9a-f]{4}) changed$");
 void CameraEventListener::handleEvent(const gp::CameraEvent& ev) {
     using Ce = gp::CameraEvent;
 
@@ -54,9 +57,24 @@ void CameraEventListener::handleEvent(const gp::CameraEvent& ev) {
     //std::cout << "got event" << std::endl;
 
     switch (ev.type()) {
-    case Ce::EVENT_UNKNOWN:
-        /*if (cfg.verboselevel == VERBOSE_HIGH)
-            std::cout << ": " << ev.get<Ce::EVENT_UNKNOWN>() << std::endl;*/
+    case Ce::EVENT_UNKNOWN: {
+        // Try to extract a PTP property number from the event and see if we know it
+        if(!ptp_property_regex.exactMatch(QString::fromStdString(ev.get<Ce::EVENT_UNKNOWN>())))
+            break;
+        const QString property = ptp_property_regex.capturedTexts()[1];
+        if (property == "d101") {
+            // Aperture changed
+            emit apertureChanged();
+        }
+        else if (property == "d102") {
+            // Shutter speed changed
+            emit shutterChanged();
+        }
+        else if (property == "d103" || property == "d11b") { // TODO: both?
+            // ISO changed
+            emit isoChanged();
+        }
+        }
         break;
     case Ce::EVENT_TIMEOUT:
         // no event, no problem

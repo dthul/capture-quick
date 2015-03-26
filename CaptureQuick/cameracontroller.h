@@ -31,6 +31,9 @@ signals:
     void previewStopped();
 public slots:
     void readConfig();
+    void readAperture();
+    void readShutter();
+    void readIso();
     void startPreview();
     void stopPreview();
 

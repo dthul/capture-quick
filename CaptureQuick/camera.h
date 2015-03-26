@@ -82,6 +82,9 @@ signals:
 
 public slots:
 private slots:
+    // These slots are invoked from the controller after
+    // a configuration has been requested by this class
+    // and answered by the (hardware) camera.
     void c_setName(const QString& name);
     void c_setPreviewImage(const QImage preview);
     void c_setApertureChoices(const QList<QString>& newApertureChoices);
@@ -90,7 +93,9 @@ private slots:
     void c_setApertureIndex(const int aperture);
     void c_setShutterIndex(const int shutter);
     void c_setIsoIndex(const int iso);
+
 private:
+    // Will request a configuration read from the controller.
     void readConfig();
 
     gp::Camera* m_camera = nullptr;

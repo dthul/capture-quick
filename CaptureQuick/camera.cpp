@@ -43,6 +43,9 @@ Camera::Camera(gp::Camera* const gp_camera, QObject *parent) :
     m_eventListener->moveToThread(m_eventListenerThread);
     // Start listeing to events as soon as the thread starts
     connect(m_eventListenerThread, &QThread::started, m_eventListener, &CameraEventListener::startListening);
+    connect(m_eventListener, &CameraEventListener::apertureChanged, m_controller, &CameraController::readAperture);
+    connect(m_eventListener, &CameraEventListener::shutterChanged, m_controller, &CameraController::readShutter);
+    connect(m_eventListener, &CameraEventListener::isoChanged, m_controller, &CameraController::readIso);
     m_eventListenerThread->start();
 
     // Read this camera's config
