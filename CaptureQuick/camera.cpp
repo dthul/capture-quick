@@ -36,6 +36,8 @@ Camera::Camera(gp::Camera* const gp_camera, QObject *parent) :
     connect(m_controller, &CameraController::shutterChanged, this, &Camera::c_setShutterIndex);
     connect(m_controller, &CameraController::isoChoicesChanged, this, &Camera::c_setIsoChoices);
     connect(m_controller, &CameraController::isoChanged, this, &Camera::c_setIsoIndex);
+    connect(m_controller, &CameraController::previewStarted, this, &Camera::c_previewStarted);
+    connect(m_controller, &CameraController::previewStopped, this, &Camera::c_previewStopped);
     // connect(m_controllerThread, &QThread::finished, this, &Camera::previewStopped);
     m_controllerThread->start();
 
@@ -55,6 +57,7 @@ Camera::Camera(gp::Camera* const gp_camera, QObject *parent) :
 Camera::~Camera()
 {
     m_state = CAMERA_SHUTDOWN;
+    emit stateChanged(m_state);
     stopPreview();
     if (m_controllerThread != nullptr) {
         m_controllerThread->quit();
@@ -97,7 +100,35 @@ QString Camera::name() const {
 
 void Camera::c_setName(const QString& name) {
     m_name = name;
+    if (m_state == CAMERA_INIT) {
+        startPreview();
+    }
     emit nameChanged(m_name);
+}
+
+void Camera::c_previewStarted() {
+    m_state = CAMERA_PREVIEW;
+    emit stateChanged(m_state);
+}
+
+void Camera::c_previewStopped() {
+    if (m_state != CAMERA_SHUTDOWN) {
+        m_state = CAMERA_CAPTURE;
+        readConfig(); // hack to release the UI
+        emit stateChanged(m_state);
+    }
+}
+
+void Camera::setState(const CameraState state) {
+    if (state == CAMERA_PREVIEW && m_state != CAMERA_PREVIEW) {
+        startPreview();
+    }
+    else if (state == CAMERA_CAPTURE && m_state != CAMERA_CAPTURE) {
+        stopPreview();
+    }
+    else if (state != m_state) {
+        std::cout << "Camera " << m_id << ": can't set state to " << state << std::endl;
+    }
 }
 
 QString Camera::aperture() const {
@@ -238,4 +269,8 @@ QString Camera::previewUrl() const {
 
 const QImage& Camera::latestPreview() const {
     return m_latest_preview;
+}
+
+Camera::CameraState Camera::state() const {
+    return m_state;
 }

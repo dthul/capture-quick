@@ -16,6 +16,16 @@
 class Camera : public QObject
 {
     Q_OBJECT
+public:
+    enum CameraState {
+        CAMERA_SHUTDOWN,
+        CAMERA_INIT,
+        CAMERA_PREVIEW,
+        CAMERA_CAPTURE,
+        CAMERA_NONE
+    };
+private:
+    Q_ENUMS(CameraState)
 
     Q_PROPERTY(QString name READ name NOTIFY nameChanged)
 
@@ -33,6 +43,8 @@ class Camera : public QObject
     Q_PROPERTY(QStringList apertureChoices READ apertureChoices NOTIFY apertureChoicesChanged)
     Q_PROPERTY(QStringList shutterChoices READ shutterChoices NOTIFY shutterChoicesChanged)
     Q_PROPERTY(QStringList isoChoices READ isoChoices NOTIFY isoChoicesChanged)
+
+    Q_PROPERTY(CameraState state READ state WRITE setState NOTIFY stateChanged)
 public:
     explicit Camera(QObject *parent = 0);
     Camera(gp::Camera* const gp_camera, QObject *parent = 0);
@@ -61,6 +73,9 @@ public:
     QString previewUrl() const;
     const QImage& latestPreview() const;
 
+    CameraState state() const;
+    void setState(const CameraState state);
+
     const uint m_id;
 
 signals:
@@ -80,6 +95,8 @@ signals:
 
     void previewUrlChanged(QString newPreviewUrl);
 
+    void stateChanged(const CameraState state);
+
 public slots:
 private slots:
     // These slots are invoked from the controller after
@@ -93,6 +110,8 @@ private slots:
     void c_setApertureIndex(const int aperture);
     void c_setShutterIndex(const int shutter);
     void c_setIsoIndex(const int iso);
+    void c_previewStarted();
+    void c_previewStopped();
 
 private:
     // Will request a configuration read from the controller.
@@ -117,11 +136,5 @@ private:
     QDateTime m_latest_preview_time;
 
     static std::atomic_uint s_id;
-    enum CameraState{
-        CAMERA_SHUTDOWN,
-        CAMERA_INIT,
-        CAMERA_PREVIEW,
-        CAMERA_NONE
-    };
-    volatile CameraState m_state;
+    CameraState m_state;
 };

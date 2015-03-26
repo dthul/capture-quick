@@ -2,6 +2,7 @@ import QtQuick 2.4
 import QtQuick.Controls 1.3
 import QtQuick.Controls.Styles 1.3
 import QtQuick.Layouts 1.1
+import CaptureQuick 0.1 // Makes the Camera class available (registered in main.cpp)
 
 Item {
     id: imageView
@@ -195,7 +196,7 @@ Item {
 
     Item {
         id: info
-
+        state: "visible"
         states: State {
             name: "visible"
             PropertyChanges {
@@ -267,6 +268,23 @@ Item {
                     textFormat: Text.StyledText
                     color: "white"
                     text: "<b>Name:</b> " + model.name
+                }
+                Text {
+                    property int state: model.state
+                    property string stateName: "Unknown"
+                    onStateChanged: {
+                        switch(state) {
+                        case Camera.CAMERA_INIT: stateName = "Initializing"; break
+                        case Camera.CAMERA_CAPTURE: stateName = "Capture"; break
+                        case Camera.CAMERA_NONE: stateName = "Unconnected"; break
+                        case Camera.CAMERA_PREVIEW: stateName = "Live Preview"; break
+                        case Camera.CAMERA_SHUTDOWN: stateName = "Disconnecting"; break
+                        }
+                    }
+
+                    textFormat: Text.StyledText
+                    color: "white"
+                    text: "<b>State:</b> " + stateName
                 }
                 Text {
                     textFormat: Text.StyledText
