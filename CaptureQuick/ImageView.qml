@@ -293,30 +293,10 @@ Item {
                         // are used instead.
                         // currentIndex: imageView.model.apertureIndex
                     }
-                    BusyIndicator {
+                    BusySpinner {
                         Layout.maximumHeight: apertureComboBox.height
                         Layout.maximumWidth: apertureComboBox.height
                         running: apertureComboBox.currentIndex != apertureComboBox.selectedIndex
-                        scale: 0.6
-                        style: BusyIndicatorStyle {
-                            indicator: Image {
-                                //visible: control.running
-                                opacity: control.running ? 1 : 0
-                                source: "busyindicator.png"
-                                RotationAnimator on rotation {
-                                    running: control.running
-                                    loops: Animation.Infinite
-                                    duration: 1000
-                                    from: 0
-                                    to: 360
-                                }
-                                Behavior on opacity {
-                                    NumberAnimation {
-                                        duration: 150
-                                    }
-                                }
-                            }
-                        }
                     }
                 }
                 Text {
@@ -339,11 +319,10 @@ Item {
                                 imageView.model.shutterIndex = currentIndex
                         }
                     }
-                    BusyIndicator {
+                    BusySpinner {
                         Layout.maximumHeight: shutterComboBox.height
                         Layout.maximumWidth: shutterComboBox.height
                         running: shutterComboBox.currentIndex != shutterComboBox.selectedIndex
-                        scale: 0.6
                     }
                 }
                 Text {
@@ -366,11 +345,10 @@ Item {
                                 imageView.model.isoIndex = currentIndex
                         }
                     }
-                    BusyIndicator {
+                    BusySpinner {
                         Layout.maximumHeight: isoComboBox.height
                         Layout.maximumWidth: isoComboBox.height
                         running: isoComboBox.currentIndex != isoComboBox.selectedIndex
-                        scale: 0.6
                     }
                 }
             }
