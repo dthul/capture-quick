@@ -89,7 +89,8 @@ public:
 	// flip the mirror up. At least some cameras don't need to be in an
 	// explicit video mode for previewing to work.
 	std::vector<char> preview();
-	void save_preview(const std::string& fname);
+    void save_preview(const std::string& fname);
+    void reset();
 
 	CameraEvent wait_event(int timeout_msec);
 

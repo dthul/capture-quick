@@ -38,6 +38,7 @@ Camera::Camera(gp::Camera* const gp_camera, QObject *parent) :
     connect(m_controller, &CameraController::isoChanged, this, &Camera::c_setIsoIndex);
     connect(m_controller, &CameraController::previewStarted, this, &Camera::c_previewStarted);
     connect(m_controller, &CameraController::previewStopped, this, &Camera::c_previewStopped);
+    connect(m_controller, &CameraController::resetDone, this, &Camera::c_resetDone);
     // connect(m_controllerThread, &QThread::finished, this, &Camera::previewStopped);
     m_controllerThread->start();
 
@@ -112,9 +113,24 @@ void Camera::c_previewStarted() {
 }
 
 void Camera::c_previewStopped() {
+    m_latest_preview = QImage(":/testchart.png");
+    m_latest_preview_time = QDateTime::currentDateTimeUtc();
+    emit previewUrlChanged(previewUrl());
+    if (m_state != CAMERA_SHUTDOWN) {
+        m_state = CAMERA_TRANSITIONING;
+        emit stateChanged(m_state);
+        reset(); // release UI lock
+    }
+}
+
+void Camera::reset() {
+    if (m_controller)
+        QMetaObject::invokeMethod(m_controller, "reset", Qt::QueuedConnection);
+}
+
+void Camera::c_resetDone() {
     if (m_state != CAMERA_SHUTDOWN) {
         m_state = CAMERA_CAPTURE;
-        readConfig(); // hack to release the UI
         emit stateChanged(m_state);
     }
 }
@@ -258,6 +274,8 @@ void Camera::stopPreview() {
 }
 
 void Camera::c_setPreviewImage(const QImage preview) {
+    if (m_state != CAMERA_PREVIEW)
+        return;
     m_latest_preview = preview;
     m_latest_preview_time = QDateTime::currentDateTimeUtc();
     emit previewUrlChanged(previewUrl());

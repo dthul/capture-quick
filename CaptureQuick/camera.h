@@ -22,6 +22,7 @@ public:
         CAMERA_INIT,
         CAMERA_PREVIEW,
         CAMERA_CAPTURE,
+        CAMERA_TRANSITIONING,
         CAMERA_NONE
     };
 private:
@@ -112,10 +113,12 @@ private slots:
     void c_setIsoIndex(const int iso);
     void c_previewStarted();
     void c_previewStopped();
+    void c_resetDone();
 
 private:
     // Will request a configuration read from the controller.
     void readConfig();
+    void reset();
 
     gp::Camera* m_camera = nullptr;
 

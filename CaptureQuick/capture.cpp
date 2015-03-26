@@ -16,10 +16,6 @@ Capture::Capture(QQmlApplicationEngine* const qmlEngine, QObject *parent) :
         m_cameras.append(camera);
     }
 
-    /*for (QObject* camera : m_cameras) {
-        static_cast<Camera*>(camera)->startPreview();
-    }*/
-
     // will be freed by Qt
     LiveImageProvider *liveImgProvider = new LiveImageProvider(reinterpret_cast<QList<Camera*>*>(&m_cameras));
     m_qml_engine->addImageProvider("live", liveImgProvider);
@@ -29,9 +25,6 @@ Capture::Capture(QQmlApplicationEngine* const qmlEngine, QObject *parent) :
 
 Capture::~Capture()
 {
-    for (QObject* camera : m_cameras) {
-        static_cast<Camera*>(camera)->stopPreview();
-    }
     for (QObject* camera : m_cameras) {
         delete camera;
     }

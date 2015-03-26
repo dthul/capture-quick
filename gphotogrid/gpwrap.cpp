@@ -228,6 +228,16 @@ void Camera::set_config(CameraWidget* rootwindow) {
 		throw Exception("gp_camera_set_config", ret);
 }
 
+void Camera::reset() {
+    std::lock_guard<std::mutex> g(mutex);
+
+    int ret;
+    if ((ret = gp_camera_exit(camera, ctx->context)) < GP_OK)
+        throw Exception("gp_camera_exit", ret);
+    if ((ret = gp_camera_init(camera, ctx->context)) < GP_OK)
+        throw Exception("gp_camera_init", ret);
+}
+
 std::vector<char> Camera::preview() {
 	std::lock_guard<std::mutex> g(mutex);
 

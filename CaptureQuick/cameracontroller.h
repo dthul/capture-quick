@@ -29,6 +29,8 @@ signals:
 
     void previewStarted();
     void previewStopped();
+
+    void resetDone();
 public slots:
     void readConfig();
     void readAperture();
@@ -40,6 +42,8 @@ public slots:
     void setAperture(const int index);
     void setShutter(const int index);
     void setIso(const int index);
+
+    void reset(); // releases UI lock
 private slots:
     void capturePreview();
 private:

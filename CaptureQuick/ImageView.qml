@@ -196,7 +196,7 @@ Item {
 
     Item {
         id: info
-        state: "visible"
+        // state: "visible"
         states: State {
             name: "visible"
             PropertyChanges {
@@ -279,6 +279,7 @@ Item {
                         case Camera.CAMERA_NONE: stateName = "Unconnected"; break
                         case Camera.CAMERA_PREVIEW: stateName = "Live Preview"; break
                         case Camera.CAMERA_SHUTDOWN: stateName = "Disconnecting"; break
+                        case Camera.CAMERA_TRANSITIONING: stateName = "Transitioning"; break
                         }
                     }
 

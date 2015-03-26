@@ -2,6 +2,7 @@ import QtQuick 2.4
 import QtQuick.Controls 1.3
 import QtQuick.Window 2.2
 import QtQuick.Layouts 1.1
+import CaptureQuick 0.1 // Makes the Camera class available (registered in main.cpp)
 
 ApplicationWindow {
     title: qsTr("Hello World")
@@ -103,21 +104,31 @@ ApplicationWindow {
                 }
             }
 
-            /*ColumnLayout {
+            ColumnLayout {
                 id: columnLayout1
                 width: 100
                 height: 100
                 Layout.alignment: Qt.AlignTop
 
-                ComboBox {
-                    id: comboBox1
-                }
-
                 Button {
-                    text: qsTr("Press me")
-                    id: button1
+                    text: qsTr("Capture Mode")
+                    //id: button1
+                    onClicked: {
+                        for (var i = 0; i < cameras.length; ++i) {
+                            cameras[i].state = Camera.CAMERA_CAPTURE
+                        }
+                    }
                 }
-            }*/
+                Button {
+                    text: qsTr("Live Preview Mode")
+                    //id: button1
+                    onClicked: {
+                        for (var i = 0; i < cameras.length; ++i) {
+                            cameras[i].state = Camera.CAMERA_PREVIEW
+                        }
+                    }
+                }
+            }
         }
     }
 

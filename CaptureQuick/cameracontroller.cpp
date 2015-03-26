@@ -176,3 +176,8 @@ void CameraController::setIso(const int index) {
     // instead.
     readIso();
 }
+
+void CameraController::reset() {
+    m_camera->reset();
+    emit resetDone();
+}
