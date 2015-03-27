@@ -366,6 +366,10 @@ Item {
                         running: isoComboBox.currentIndex != isoComboBox.selectedIndex
                     }
                 }
+                Button {
+                    text: "Trigger"
+                    onClicked: model.trigger()
+                }
             }
         }
 

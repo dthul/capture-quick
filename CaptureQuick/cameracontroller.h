@@ -46,6 +46,7 @@ public slots:
     void setShutter(const int index);
     void setIso(const int index);
 
+    void trigger();
     void readImage(const QFileInfo& fileInfo);
 
     void reset(); // releases UI lock

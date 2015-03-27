@@ -4,8 +4,6 @@
 
 #include <QRegExp>
 
-const QRegExp url_regex("^([^/]+)/(preview|image)/([^/]+)$");
-
 LiveImageProvider::LiveImageProvider(QList<Camera*>* cameras) :
     QQuickImageProvider(QQmlImageProviderBase::Image),
     m_cameras(cameras),
@@ -20,6 +18,7 @@ LiveImageProvider::~LiveImageProvider()
 }
 
 QImage LiveImageProvider::requestImage(const QString &url, QSize *size, const QSize &/*requestedSize*/) {
+    const QRegExp url_regex("^([^/]+)/(preview|image)/([^/]+)$");
     *size = m_default_image.size();
     if(!url_regex.exactMatch(url))
         return m_default_image;

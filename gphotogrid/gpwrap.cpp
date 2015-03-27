@@ -170,15 +170,15 @@ Camera::Camera(const char *model, const char *port, Context& ctx) : camera(nullp
 
 
 Camera::Camera(Camera&& other) : camera(other.camera), ctx(other.ctx) {
-	std::lock_guard<std::mutex> g(other.mutex);
+    std::lock_guard<std::mutex> g(other.mutex);
 	gp_context_ref(ctx->context);
 	other.camera = nullptr;
 }
 
 Camera& Camera::operator=(Camera&& other) {
 	if (this != &other) {
-		std::lock_guard<std::mutex> g(mutex);
-		std::lock_guard<std::mutex> go(other.mutex);
+        std::lock_guard<std::mutex> g(mutex);
+        std::lock_guard<std::mutex> go(other.mutex);
 		std::swap(camera, other.camera);
 		std::swap(ctx, other.ctx);
 	}
@@ -186,7 +186,7 @@ Camera& Camera::operator=(Camera&& other) {
 }
 
 Camera::~Camera() {
-	std::lock_guard<std::mutex> g(mutex);
+    std::lock_guard<std::mutex> g(mutex);
 	gp_context_unref(ctx->context);
 	
 	if (camera)
@@ -196,8 +196,8 @@ Camera::~Camera() {
 std::mutex Camera::configmutex;
 
 Widget Camera::config() {
-	std::lock_guard<std::mutex> cg(configmutex);
-	std::lock_guard<std::mutex> g(mutex);
+    std::lock_guard<std::mutex> cg(configmutex);
+    std::lock_guard<std::mutex> g(mutex);
 
 	CameraWidget *w;
 	int ret;
@@ -208,8 +208,8 @@ Widget Camera::config() {
 }
 
 const Widget Camera::config() const {
-	std::lock_guard<std::mutex> cg(configmutex);
-	std::lock_guard<std::mutex> g(mutex);
+    std::lock_guard<std::mutex> cg(configmutex);
+    std::lock_guard<std::mutex> g(mutex);
 
 	CameraWidget *w;
 	int ret;
@@ -221,7 +221,7 @@ const Widget Camera::config() const {
 }
 
 void Camera::set_config(CameraWidget* rootwindow) {
-	std::lock_guard<std::mutex> g(mutex);
+    std::lock_guard<std::mutex> g(mutex);
 
 	int ret;
 	if ((ret = gp_camera_set_config(camera, rootwindow, ctx->context)) < GP_OK)
@@ -239,7 +239,7 @@ void Camera::reset() {
 }
 
 std::vector<char> Camera::preview() {
-	std::lock_guard<std::mutex> g(mutex);
+    std::lock_guard<std::mutex> g(mutex);
 
 	auto file = GP_NEW_UNIQUE(CameraFile, gp_file);
 	int ret;
@@ -262,6 +262,17 @@ void Camera::save_preview(const std::string& fname) {
 	auto pic = preview();
 	std::ofstream fs(fname);
 	std::copy(pic.begin(), pic.end(), std::ostreambuf_iterator<char>(fs));
+}
+
+void Camera::trigger() {
+    std::lock_guard<std::mutex> g(mutex);
+    int ret;
+    if ((ret = gp_camera_trigger_capture(camera, ctx->context)) < GP_OK) {
+        if (ret == -1) { // The autofocus might got stuck
+            // TODO: --set-config autofocusdrive=0
+        }
+        throw Exception("gp_camera_trigger_capture", ret);
+    }
 }
 
 CameraEvent Camera::wait_event(int timeout_msec) {

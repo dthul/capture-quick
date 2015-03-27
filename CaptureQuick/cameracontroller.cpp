@@ -128,6 +128,14 @@ void CameraController::capturePreview() {
         QMetaObject::invokeMethod(this, "capturePreview", Qt::QueuedConnection);
 }
 
+void CameraController::trigger() {
+    try {
+        m_camera->trigger();
+    } catch (gp::Exception& ex) {
+        std::cout << "cam " /* TODO << index*/ << ": " << ex.what() << std::endl;
+    }
+}
+
 void CameraController::readImage(const QFileInfo& fileInfo) {
     try {
         JpegBuffer jpeg = m_camera->read_image(fileInfo.path().toStdString(), fileInfo.fileName().toStdString());

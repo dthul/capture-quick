@@ -130,6 +130,12 @@ void Camera::reset() {
         QMetaObject::invokeMethod(m_controller, "reset", Qt::QueuedConnection);
 }
 
+void Camera::trigger() {
+    if (m_state != CAMERA_CAPTURE)
+        return;
+    QMetaObject::invokeMethod(m_controller, "trigger", Qt::QueuedConnection);
+}
+
 void Camera::c_resetDone() {
     if (m_state != CAMERA_SHUTDOWN) {
         m_state = CAMERA_CAPTURE;

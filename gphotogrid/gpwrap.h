@@ -91,6 +91,7 @@ public:
 	std::vector<char> preview();
     void save_preview(const std::string& fname);
     void reset();
+    void trigger();
 
 	CameraEvent wait_event(int timeout_msec);
 
@@ -115,9 +116,9 @@ private:
 	Context* ctx; // pointer and not a ref because move assignment
 
 	// gphoto2 isn't thread safe; e.g. config while preview crashes
-	mutable std::mutex mutex;
+    mutable std::mutex mutex;
 	// config() could go initially wrong when gphoto2 is loading libs
-	static std::mutex configmutex;
+    static std::mutex configmutex;
 };
 
 // widgets are owned by the top-level widget (haven't found any docs on that

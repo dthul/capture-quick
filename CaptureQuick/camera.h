@@ -105,6 +105,7 @@ signals:
     void stateChanged(const CameraState state);
 
 public slots:
+    void trigger();
 private slots:
     // These slots are invoked from the controller after
     // a configuration has been requested by this class

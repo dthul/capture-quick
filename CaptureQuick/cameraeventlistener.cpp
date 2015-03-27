@@ -37,6 +37,7 @@ void CameraEventListener::waitForEvent() {
         gp::CameraEvent ev = m_camera->wait_event(1);
         handleEvent(ev);
     } catch (gp::Exception& e) {
+        std::cout << "CameraEventListener: " << e.what() << std::endl;
         QThread::sleep(1);
     }
 
@@ -44,9 +45,9 @@ void CameraEventListener::waitForEvent() {
         QMetaObject::invokeMethod(this, "waitForEvent", Qt::QueuedConnection);
 }
 
-const QRegExp ptp_property_regex("^PTP Property ([0-9a-f]{4}) changed$");
 void CameraEventListener::handleEvent(const gp::CameraEvent& ev) {
     using Ce = gp::CameraEvent;
+    const QRegExp ptp_property_regex("^PTP Property ([0-9a-f]{4}) changed$");
 
     /*
     if (ev.type() != Ce::EVENT_TIMEOUT && cfg.verboselevel >= VERBOSE_TALKATIVE) {
@@ -89,8 +90,8 @@ void CameraEventListener::handleEvent(const gp::CameraEvent& ev) {
         }
         break;
     case Ce::EVENT_FOLDER_ADDED: {
-        auto pathinfo = ev.get<Ce::EVENT_FOLDER_ADDED>();
-        /*if (cfg.verboselevel >= VERBOSE_TALKATIVE) {
+        /*auto pathinfo = ev.get<Ce::EVENT_FOLDER_ADDED>();
+        if (cfg.verboselevel >= VERBOSE_TALKATIVE) {
             std::cout << ": " << pathinfo.first << " "
                     << pathinfo.second << std::endl;
         }*/
