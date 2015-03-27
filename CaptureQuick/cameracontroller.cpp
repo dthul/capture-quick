@@ -114,9 +114,8 @@ void CameraController::readIso() {
 void CameraController::capturePreview() {
     if (!m_previewRunning)
         return;
-    JpegBuffer jpeg;
     try {
-        jpeg = m_camera->preview();
+        JpegBuffer jpeg = m_camera->preview();
         if (m_previewRunning) {
             // Convert the buffer containing jpeg data to a QImage
             QImage previewImage(QImage::fromData(reinterpret_cast<const uchar*>(jpeg.data()), jpeg.size()));
@@ -127,6 +126,16 @@ void CameraController::capturePreview() {
     }
     if (m_previewRunning) // queue new preview capture
         QMetaObject::invokeMethod(this, "capturePreview", Qt::QueuedConnection);
+}
+
+void CameraController::readImage(const QFileInfo& fileInfo) {
+    try {
+        JpegBuffer jpeg = m_camera->read_image(fileInfo.path().toStdString(), fileInfo.fileName().toStdString());
+        Image image(jpeg);
+        emit newImage(image);
+    } catch (gp::Exception& ex) {
+        std::cout << "cam " /* TODO << index*/ << ": " << ex.what() << std::endl;
+    }
 }
 
 template <class Obj>

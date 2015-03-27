@@ -11,6 +11,7 @@
 
 #include "cameracontroller.h"
 #include "cameraeventlistener.h"
+#include "image.h"
 #include "gputil.h"
 
 class Camera : public QObject
@@ -31,6 +32,7 @@ private:
     Q_PROPERTY(QString name READ name NOTIFY nameChanged)
 
     Q_PROPERTY(QString previewUrl READ previewUrl NOTIFY previewUrlChanged)
+    Q_PROPERTY(QString imageUrl READ imageUrl NOTIFY imageUrlChanged)
 
     // Define some properties so that they are accessible from QML
     Q_PROPERTY(QString aperture READ aperture NOTIFY apertureChanged)
@@ -74,6 +76,9 @@ public:
     QString previewUrl() const;
     const QImage& latestPreview() const;
 
+    QString imageUrl() const;
+    const QImage& latestImage() const;
+
     CameraState state() const;
     void setState(const CameraState state);
 
@@ -94,7 +99,8 @@ signals:
     void shutterChoicesChanged(const QStringList& newShutterChoices);
     void isoChoicesChanged(const QStringList& newIsoChoices);
 
-    void previewUrlChanged(QString newPreviewUrl);
+    void previewUrlChanged(const QString& newPreviewUrl);
+    void imageUrlChanged(const QString& newImageUrl);
 
     void stateChanged(const CameraState state);
 
@@ -105,6 +111,7 @@ private slots:
     // and answered by the (hardware) camera.
     void c_setName(const QString& name);
     void c_setPreviewImage(const QImage preview);
+    void c_setImage(const Image& image);
     void c_setApertureChoices(const QList<QString>& newApertureChoices);
     void c_setShutterChoices(const QList<QString>& newShutterChoices);
     void c_setIsoChoices(const QList<QString>& newIsoChoices);
@@ -137,6 +144,9 @@ private:
 
     QImage m_latest_preview;
     QDateTime m_latest_preview_time;
+
+    Image m_latest_image;
+    QDateTime m_latest_image_time;
 
     static std::atomic_uint s_id;
     CameraState m_state;

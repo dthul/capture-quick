@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QFileInfo>
 #include <QObject>
 
 #include "gputil.h"
@@ -15,6 +16,7 @@ signals:
     void apertureChanged();
     void shutterChanged();
     void isoChanged();
+    void newImageAdded(const QFileInfo& fileInfo);
 public slots:
     void startListening();
     void stopListening();

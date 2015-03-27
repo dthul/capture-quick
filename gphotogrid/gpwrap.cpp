@@ -291,6 +291,37 @@ CameraEvent Camera::wait_event(int timeout_msec) {
 	return CameraEvent(t, eventdata);
 }
 
+std::vector<char> Camera::read_image(const std::string& folder, const std::string& name, bool delete_from_cam) {
+    std::lock_guard<std::mutex> g(mutex); // TODO: needed?
+    int ret;
+
+    CameraFile *filep;
+    if ((ret = gp_file_new(&filep)) < GP_OK)
+        throw Exception("gp_file_new", ret);
+
+    // Will unref the CameraFile as soon as this method returns (for whatever reason)
+    std::unique_ptr<CameraFile, int (*)(CameraFile*)> file(filep, gp_file_unref);
+
+    if ((ret = gp_camera_file_get(camera, folder.c_str(), name.c_str(), GP_FILE_TYPE_NORMAL, filep, ctx->context)) < GP_OK)
+        throw Exception("gp_camera_file_get", ret);
+
+    const char* data;
+    unsigned long int size;
+
+    if ((ret = gp_file_get_data_and_size(filep, &data, &size)) < GP_OK)
+        throw Exception("gp_file_get_data_and_size", ret);
+
+    std::vector<char> buffer(size);
+    std::copy(data, data + size, buffer.begin());
+
+    if (delete_from_cam) {
+        if ((ret = gp_camera_file_delete(camera, folder.c_str(), name.c_str(), ctx->context)) < GP_OK)
+            throw Exception("gp_camera_file_delete", ret);
+    }
+
+    return buffer;
+}
+
 void Camera::save_file(const std::string& folder, const std::string& name,
 		const std::string& localfile, bool delete_from_cam) {
 	int ret;

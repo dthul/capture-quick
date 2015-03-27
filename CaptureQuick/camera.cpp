@@ -30,6 +30,7 @@ Camera::Camera(gp::Camera* const gp_camera, QObject *parent) :
     m_controller->moveToThread(m_controllerThread);
     connect(m_controller, &CameraController::nameChanged, this, &Camera::c_setName);
     connect(m_controller, &CameraController::newPreviewImage, this, &Camera::c_setPreviewImage);
+    connect(m_controller, &CameraController::newImage, this, &Camera::c_setImage);
     connect(m_controller, &CameraController::apertureChoicesChanged, this, &Camera::c_setApertureChoices);
     connect(m_controller, &CameraController::apertureChanged, this, &Camera::c_setApertureIndex);
     connect(m_controller, &CameraController::shutterChoicesChanged, this, &Camera::c_setShutterChoices);
@@ -49,6 +50,7 @@ Camera::Camera(gp::Camera* const gp_camera, QObject *parent) :
     connect(m_eventListener, &CameraEventListener::apertureChanged, m_controller, &CameraController::readAperture);
     connect(m_eventListener, &CameraEventListener::shutterChanged, m_controller, &CameraController::readShutter);
     connect(m_eventListener, &CameraEventListener::isoChanged, m_controller, &CameraController::readIso);
+    connect(m_eventListener, &CameraEventListener::newImageAdded, m_controller, &CameraController::readImage);
     m_eventListenerThread->start();
 
     // Read this camera's config
@@ -281,12 +283,28 @@ void Camera::c_setPreviewImage(const QImage preview) {
     emit previewUrlChanged(previewUrl());
 }
 
+void Camera::c_setImage(const Image& image) {
+    if (m_state != CAMERA_CAPTURE)
+        return;
+    m_latest_image = image;
+    m_latest_image_time = QDateTime::currentDateTimeUtc();
+    emit imageUrlChanged(imageUrl());
+}
+
 QString Camera::previewUrl() const {
-    return QString::number(m_id) + QString("/") + m_latest_preview_time.toString("dd.MM.yyyy-hh:mm:ss.zzz");
+    return QString::number(m_id) + QString("/preview/") + m_latest_preview_time.toString("dd.MM.yyyy-hh:mm:ss.zzz");
+}
+
+QString Camera::imageUrl() const {
+    return QString::number(m_id) + QString("/image/") + m_latest_image_time.toString("dd.MM.yyyy-hh:mm:ss.zzz");
 }
 
 const QImage& Camera::latestPreview() const {
     return m_latest_preview;
+}
+
+const QImage& Camera::latestImage() const {
+    return m_latest_image.toQImage();
 }
 
 Camera::CameraState Camera::state() const {

@@ -1,9 +1,11 @@
 #pragma once
 
+#include <QFileInfo>
 #include <QImage>
 #include <QObject>
 #include <QStringList>
 
+#include "image.h"
 #include "gputil.h"
 
 class CameraController : public QObject
@@ -26,6 +28,7 @@ signals:
     void isoChoicesChanged(const QStringList& newIsoChoices);
 
     void newPreviewImage(QImage preview);
+    void newImage(Image image);
 
     void previewStarted();
     void previewStopped();
@@ -42,6 +45,8 @@ public slots:
     void setAperture(const int index);
     void setShutter(const int index);
     void setIso(const int index);
+
+    void readImage(const QFileInfo& fileInfo);
 
     void reset(); // releases UI lock
 private slots:

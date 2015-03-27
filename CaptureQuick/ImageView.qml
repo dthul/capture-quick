@@ -183,7 +183,7 @@ Item {
             height: parent.height
             // The "live" image provider has been registered from
             // the C++ code
-            source: "image://live/" + model.previewUrl
+            source: "image://live/" + ((model.state === Camera.CAMERA_PREVIEW) ? model.previewUrl : model.imageUrl)
         }
 
         // Open the overlay on click

@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include <QDir>
 #include <QMetaObject>
 #include <QRegExp>
 #include <QStringList>
@@ -81,22 +82,10 @@ void CameraEventListener::handleEvent(const gp::CameraEvent& ev) {
         break;
     case Ce::EVENT_FILE_ADDED: {
         auto pathinfo = ev.get<Ce::EVENT_FILE_ADDED>();
-        /*if (cfg.verboselevel >= VERBOSE_TALKATIVE) {
-            std::cout << ": " << pathinfo.first << " "
-                    << pathinfo.second << std::endl;
-        }
-        std::string localdest = local_filename(pathinfo.second, cfg, name, locks.sequenceid);
-        // camera folder and file name separately
-        cam.save_file(pathinfo.first, pathinfo.second, localdest, cfg.delete_on_download);
-        if (cfg.verboselevel >= VERBOSE_NORMAL)
-            std::cout << name << " downloaded " << pathinfo.second
-                << " -> " << localdest << "..." << std::endl;
-
-        locks.readycount.notify_one();
-        // TODO: download queue and try_wait, not to clog gphoto event
-        // queue? probably all cameras have pretty same speed, so it's
-        // just unnecessarily complicated
-        locks.usernotified.wait();*/
+        QFileInfo fileInfo(
+                    QString::fromStdString(pathinfo.first),
+                    QString::fromStdString(pathinfo.second));
+        emit newImageAdded(fileInfo);
         }
         break;
     case Ce::EVENT_FOLDER_ADDED: {

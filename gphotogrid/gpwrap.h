@@ -94,6 +94,9 @@ public:
 
 	CameraEvent wait_event(int timeout_msec);
 
+    // download a previously shot file and return it as a vector
+    std::vector<char> read_image(const std::string& folder,
+            const std::string& name, bool delete_from_cam=false);
 	// download a previously shot file and save it locally
 	void save_file(const std::string& folder, const std::string& name,
 			const std::string& localfile, bool delete_from_cam=false);
