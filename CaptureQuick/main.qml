@@ -31,6 +31,7 @@ ApplicationWindow {
         RowLayout {
             id: rowLayout1
             anchors.fill: parent
+            anchors.margins: 5
 
             GridLayout {
                 id: imageGrid

@@ -2,6 +2,7 @@ import QtQuick 2.4
 import QtQuick.Controls 1.3
 import QtQuick.Controls.Styles 1.3
 import QtQuick.Layouts 1.1
+import QtGraphicalEffects 1.0
 import CaptureQuick 0.1 // Makes the Camera class available (registered in main.cpp)
 
 Item {
@@ -13,8 +14,8 @@ Item {
         name: "maximized"
         PropertyChanges {
             target: overlay
-            x: imageGrid.x
-            y: imageGrid.y
+            x: imageGrid.mapToItem(mainFrame, 0 * imageGrid.x * imageGrid.width, 0).x
+            y: imageGrid.mapToItem(mainFrame, 0 * imageGrid.x * imageGrid.width, 0).y
             z: 2
             width: imageGrid.width
             height: imageGrid.height
@@ -77,18 +78,18 @@ Item {
     MouseArea {
         id: overlay
 
-        // Make imageGrid the overlay's parent so that it is effectively taken out
+        // Make mainFrame the overlay's parent so that it is effectively taken out
         // of the GridLayout
         parent: mainFrame
 
         // Map the image's coordinates (which are relative to its respective GridLayout cell)
-        // to the upper left corner of the imageGrid (which is the overlay's parent) to position
+        // to the upper left corner of the mainFrame (which is the overlay's parent) to position
         // the overlay exactly over the image.
         // The multiplication of the image's and imageGrid's properties with 0 is a hack to
         // enforce recomputation of the (mapped) x and y coordinates when either the image
         // or the imageGrid change size or position
-        x: image.mapToItem(imageGrid, 0 * image.width * image.x * imageGrid.x * imageGrid.width, 0).x
-        y: image.mapToItem(imageGrid, 0 * image.height * image.y * imageGrid.y * imageGrid.height, 0).y
+        x: image.mapToItem(mainFrame, 0 * image.width * image.x * imageGrid.x * imageGrid.width, 0).x
+        y: image.mapToItem(mainFrame, 0 * image.height * image.y * imageGrid.y * imageGrid.height, 0).y
 
         // Always keep the same size as the image
         width: image.width
@@ -134,7 +135,7 @@ Item {
             name: "hovered"
             PropertyChanges {
                 target: glow
-                opacity: 0.1
+                opacity: 1
             }
         }
 
@@ -159,6 +160,15 @@ Item {
             }
         ]
 
+        RectangularGlow {
+            id: glow
+            anchors.fill: image
+            color: "orange"
+            cornerRadius: 0
+            glowRadius: 5
+            opacity: 0
+        }
+
         Rectangle {
             anchors.fill: parent
             color: 'grey'
@@ -174,20 +184,6 @@ Item {
             // The "live" image provider has been registered from
             // the C++ code
             source: "image://live/" + model.previewUrl
-        }
-
-        // This rectangle will provide the white "glow" when
-        // hovering with the mouse over an image
-        Rectangle {
-            id: glow
-            // Position the rectangle exactly over the image
-            x: image.x
-            y: image.y
-            width: image.width
-            height: image.height
-            color: "white"
-            // Hide the glow initially
-            opacity: 0
         }
 
         // Open the overlay on click
