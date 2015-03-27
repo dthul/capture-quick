@@ -1,0 +1,7 @@
+Problems:
+- when triggering via software the camera might get stuck in trying to autofocus
+  -> after that it's kind of broken and can't be controlled anymore. Fixable?
+- after triggering via the trigger box the camera can't be controlled via
+  software anymore (some things like event handling and picture downloading
+  still work but not software triggering or changing to preview mode)
+  -> for now: only trigger via software and not via trigger box
