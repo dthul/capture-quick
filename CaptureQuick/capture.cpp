@@ -3,13 +3,18 @@
 #include <iostream>
 
 #include <QQmlContext>
+#include <QSettings>
+#include <QStandardPaths>
 #include <QVariant>
 
 Capture::Capture(QQmlApplicationEngine* const qmlEngine, QObject *parent) :
     QObject(parent),
     m_qml_engine(qmlEngine),
-    m_num_captured(0)
+    m_num_captured(0),
+    m_capture_round(0)
 {
+    QSettings settings;
+    m_capture_root = settings.value("capture/root_path", QStandardPaths::writableLocation(QStandardPaths::PicturesLocation)).toString();
     m_gp_cameras = gpcontext.all_cameras();
     std::cout << "Found " << m_gp_cameras.size() << " cameras" << std::endl;
     for (auto& gp_camera : m_gp_cameras) {
@@ -63,4 +68,15 @@ void Capture::newImageCaptured() {
     }
     m_num_captured = num_captured;
     emit numCapturedChanged(m_num_captured);
+}
+
+QString Capture::captureRoot() const {
+    return m_capture_root;
+}
+
+void Capture::setCaptureRoot(const QString& newCaptureRoot) {
+    QSettings settings;
+    m_capture_root = newCaptureRoot;
+    settings.setValue("capture/root_path", newCaptureRoot);
+    emit captureRootChanged(m_capture_root);
 }

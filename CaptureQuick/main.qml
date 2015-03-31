@@ -1,14 +1,22 @@
 import QtQuick 2.4
 import QtQuick.Controls 1.3
-import QtQuick.Window 2.2
+import QtQuick.Dialogs 1.0
 import QtQuick.Layouts 1.1
+import QtQuick.Window 2.2
+
 import CaptureQuick 0.1 // Makes the Camera class available (registered in main.cpp)
+
+import "qrc:/fontawesome.js" as FontAwesome
 
 ApplicationWindow {
     title: qsTr("Hello World")
     width: 1920
     height: 1080
     visible: true
+
+    FontLoader {
+        source: "qrc:/fontawesome-webfont.ttf"
+    }
 
     menuBar: MenuBar {
         Menu {
@@ -129,11 +137,35 @@ ApplicationWindow {
                         }
                     }
                 }
+                FileDialog {
+                    id: captureRootDialog
+                    title: qsTr("Choose a location for the captured images")
+                    folder: capture.captureRoot
+                    selectFolder: true
+                    onAccepted: {
+                        capture.captureRoot = captureRootDialog.folder
+                    }
+                }
+                RowLayout {
+                    Text {
+                        text: capture.captureRoot
+                        elide: Text.ElideMiddle
+                    }
+                    Text {
+                        font.pointSize: 15
+                        font.family: "FontAwesome"
+                        text: FontAwesome.Icon.Cog
+                        MouseArea {
+                            cursorShape: Qt.PointingHandCursor
+                            anchors.fill: parent
+                            onClicked: captureRootDialog.open()
+                        }
+                    }
+                }
                 Button {
                     text: qsTr("Save captured images")
                     onClicked: capture.saveCaptureToDisk()
                 }
-
                 Button {
                     text: qsTr("Live Preview Mode")
                     //id: button1
