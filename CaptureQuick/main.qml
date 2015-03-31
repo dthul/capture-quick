@@ -115,9 +115,8 @@ ApplicationWindow {
 
             ColumnLayout {
                 id: columnLayout1
-                width: 100
-                height: 100
                 Layout.alignment: Qt.AlignTop
+                Layout.maximumWidth: 0.15 * parent.width
 
                 Button {
                     text: qsTr("Capture Mode")
@@ -148,10 +147,12 @@ ApplicationWindow {
                 }
                 RowLayout {
                     Text {
+                        Layout.fillWidth: true
                         text: capture.captureRoot
-                        elide: Text.ElideMiddle
+                        elide: Text.ElideLeft
                     }
                     Text {
+                        id: settings
                         font.pointSize: 15
                         font.family: "FontAwesome"
                         text: FontAwesome.Icon.Cog
