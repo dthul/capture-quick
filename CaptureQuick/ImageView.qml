@@ -19,7 +19,6 @@ Item {
             z: 2
             width: imageGrid.width
             height: imageGrid.height
-            opacity: 1
             enabled: true
         }
         PropertyChanges {
@@ -40,7 +39,7 @@ Item {
                 }
                 NumberAnimation {
                     target: overlay
-                    properties: "z,opacity"
+                    properties: "z"
                     duration: 0
                 }
                 NumberAnimation {
@@ -63,7 +62,7 @@ Item {
                 }
                 NumberAnimation {
                     target: overlay
-                    properties: "z,opacity"
+                    properties: "z"
                     duration: 0
                 }
                 NumberAnimation {
@@ -82,6 +81,8 @@ Item {
         // of the GridLayout
         parent: mainFrame
 
+        hoverEnabled: true
+
         // Map the image's coordinates (which are relative to its respective GridLayout cell)
         // to the upper left corner of the mainFrame (which is the overlay's parent) to position
         // the overlay exactly over the image.
@@ -95,40 +96,11 @@ Item {
         width: image.width
         height: image.height
 
-        // Ignore all mouse events when not in full state.
-        // Otherwise the overlay would intercept all mouse events since it is on top
-        // of the other items
-        enabled: false
-
-        // Hide the overlay initially
-        opacity: 0
-
         // Close the overlay on click
-        onClicked: imageView.state = ""
+        onClicked: imageView.state = imageView.state == "" ? "maximized" : ""
 
         z: 0
 
-        Rectangle {
-            anchors.fill: parent
-            color: 'grey'
-        }
-        // This is the overlayed image that the user will actually see
-        // when opening the overlay
-        Image {
-            id: overlayImage
-            width: overlay.width
-            height: overlay.height
-            clip: true
-            source: image.source
-            cache: false
-            mipmap: true
-        }
-    }
-
-    MouseArea {
-        id: imageArea
-        anchors.fill: parent
-        hoverEnabled: true
         state: containsMouse ? "hovered" : ""
 
         states: State {
@@ -162,7 +134,7 @@ Item {
 
         RectangularGlow {
             id: glow
-            anchors.fill: image
+            anchors.fill: parent
             color: "orange"
             cornerRadius: 0
             glowRadius: 5
@@ -173,21 +145,29 @@ Item {
             anchors.fill: parent
             color: 'grey'
         }
-        // This is the image that is actually visible in
-        // the image grid.
-        Image {
-            id: image
-            cache: false
-            mipmap: true
-            width: parent.width
-            height: parent.height
-            // The "live" image provider has been registered from
-            // the C++ code
-            source: "image://live/" + ((model.state === Camera.CAMERA_PREVIEW) ? model.previewUrl : model.imageUrl)
-        }
 
-        // Open the overlay on click
-        onClicked: imageView.state = "maximized"
+        // This is the overlayed image that the user will actually see
+        Image {
+            id: overlayImage
+            width: overlay.width
+            height: overlay.height
+            clip: true
+            source: image.source
+            mipmap: true
+        }
+    }
+
+    // This is the image that is actually in
+    // the image grid.
+    Image {
+        id: image
+        anchors.fill: parent
+        width: parent.width
+        height: parent.height
+        // The "live" image provider has been registered from
+        // the C++ code
+        source: "image://live/" + ((model.state === Camera.CAMERA_PREVIEW) ? model.previewUrl : model.imageUrl)
+        visible: false
     }
 
     Item {
