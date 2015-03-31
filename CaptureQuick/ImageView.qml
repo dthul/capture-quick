@@ -236,14 +236,10 @@ Item {
                 id: infoPanel
                 anchors.centerIn: parent
                 Text {
-                    color: "white"
-                    text: "Info"
-                    font.bold: true
-                }
-                Text {
                     textFormat: Text.StyledText
                     color: "white"
                     text: "<b>Name:</b> " + model.name
+                    font.pointSize: 12
                 }
                 Text {
                     property int state: model.state
@@ -262,11 +258,13 @@ Item {
                     textFormat: Text.StyledText
                     color: "white"
                     text: "<b>State:</b> " + stateName
+                    font.pointSize: 12
                 }
                 Text {
                     textFormat: Text.StyledText
                     color: "white"
                     text: "<b>Aperture:</b> " + model.aperture
+                    font.pointSize: 12
                 }
                 RowLayout {
                     spacing: 0
@@ -298,6 +296,7 @@ Item {
                     textFormat: Text.StyledText
                     color: "white"
                     text: "<b>Shutter Speed:</b> " + model.shutter
+                    font.pointSize: 12
                 }
                 RowLayout {
                     spacing: 0
@@ -324,6 +323,7 @@ Item {
                     textFormat: Text.StyledText
                     color: "white"
                     text: "<b>ISO:</b> " + model.iso
+                    font.pointSize: 12
                 }
                 RowLayout {
                     spacing: 0
