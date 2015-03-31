@@ -106,6 +106,8 @@ signals:
 
 public slots:
     void trigger();
+    void clearLatestImage();
+    void saveImage(const QString& fileName);
 private slots:
     // These slots are invoked from the controller after
     // a configuration has been requested by this class

@@ -1,5 +1,7 @@
 #include "image.h"
 
+#include <fstream>
+
 Image::Image() {}
 
 Image::Image(const Image &other) :
@@ -24,4 +26,11 @@ char const* Image::data() const {
 
 std::size_t Image::size() const {
     return m_buffer.size();
+}
+
+void Image::save(const std::string& fileName) const {
+    // TODO: error handling
+    std::ofstream out(fileName, std::ofstream::binary);
+    out.write(m_buffer.data(), m_buffer.size());
+    out.close();
 }

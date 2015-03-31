@@ -297,6 +297,12 @@ void Camera::c_setImage(const Image& image) {
     emit imageUrlChanged(imageUrl());
 }
 
+void Camera::clearLatestImage() {
+    m_latest_image = Image();
+    m_latest_image_time = QDateTime::currentDateTimeUtc();
+    emit imageUrlChanged(imageUrl());
+}
+
 QString Camera::previewUrl() const {
     return QString::number(m_id) + QString("/preview/") + m_latest_preview_time.toString("dd.MM.yyyy-hh:mm:ss.zzz");
 }
@@ -315,4 +321,8 @@ const QImage& Camera::latestImage() const {
 
 Camera::CameraState Camera::state() const {
     return m_state;
+}
+
+void Camera::saveImage(const QString& fileName) {
+    m_latest_image.save(fileName.toStdString());
 }

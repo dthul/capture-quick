@@ -21,6 +21,7 @@ public:
     const QImage& toQImage() const;
     char const* data() const;
     std::size_t size() const;
+    void save(const std::string& fileName) const;
 private:
     std::vector<char> m_buffer;
     QImage m_qimage;

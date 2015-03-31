@@ -121,6 +121,20 @@ ApplicationWindow {
                     }
                 }
                 Button {
+                    text: qsTr("Trigger All")
+                    onClicked: {
+                        capture.newCapture()
+                        for (var i = 0; i < cameras.length; ++i) {
+                            cameras[i].trigger()
+                        }
+                    }
+                }
+                Button {
+                    text: qsTr("Save captured images")
+                    onClicked: capture.saveCaptureToDisk()
+                }
+
+                Button {
                     text: qsTr("Live Preview Mode")
                     //id: button1
                     onClicked: {
@@ -128,6 +142,9 @@ ApplicationWindow {
                             cameras[i].state = Camera.CAMERA_PREVIEW
                         }
                     }
+                }
+                Text {
+                    text: capture.numCaptured + " / " + cameras.length
                 }
             }
         }
