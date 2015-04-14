@@ -9,6 +9,7 @@ import CaptureQuick 0.1 // Makes the Camera class available (registered in main.
 import "qrc:/fontawesome.js" as FontAwesome
 
 ApplicationWindow {
+    id: app
     title: qsTr("Hello World")
     width: 1920
     height: 1080
@@ -142,7 +143,15 @@ ApplicationWindow {
                     folder: capture.captureRoot
                     selectFolder: true
                     onAccepted: {
-                        capture.captureRoot = captureRootDialog.folder
+                        // More or less hacky way to extract the absolute path from
+                        // the URL that the FileDialog returns.
+                        // see: http://stackoverflow.com/a/26868237/850264
+                        var url = this.folder.toString();
+                        // remove prefixed "file://"
+                        var path = url.replace(/^(file:\/{2})/,"");
+                        // unescape HTML codes like '%23'
+                        path = decodeURIComponent(path);
+                        capture.captureRoot = path;
                     }
                 }
                 RowLayout {
@@ -167,6 +176,17 @@ ApplicationWindow {
                     text: qsTr("Save captured images")
                     onClicked: capture.saveCaptureToDisk()
                 }
+                CheckBox {
+                    id: autoSaveCheckbox
+                    text: "Auto Save"
+
+                    checked: capture.autoSave
+                    onCheckedChanged: {
+                        if (checked != capture.autoSave) {
+                            capture.autoSave = checked;
+                        }
+                    }
+                }
                 Button {
                     text: qsTr("Live Preview Mode")
                     //id: button1
@@ -179,6 +199,27 @@ ApplicationWindow {
                 Text {
                     text: capture.numCaptured + " / " + cameras.length
                 }
+            }
+        }
+
+        Tooltip {
+            tool: autoSaveCheckbox
+            text: "Saves the captured images as\nsoon as every camera triggered"
+            opacity: autoSaveCheckbox.hovered ? 0.8 : 0
+            // Hacky hack hack
+            x: autoSaveCheckbox.mapToItem(mainFrame, 0 * columnLayout1.x * autoSaveCheckbox.x, 0).x + autoSaveCheckbox.width / 2 - width / 2
+            y: autoSaveCheckbox.mapToItem(mainFrame, 0, 0 * columnLayout1.y * autoSaveCheckbox.y).y + autoSaveCheckbox.height + 5
+            z: 9999
+        }
+    }
+
+    function broadcastSettings(sourceCamera) {
+        for (var i = 0; i < cameras.lenght; ++i) {
+            var destCamera = cameras[i];
+            if (sourceCamera !== destCamera) {
+                destCamera.apertureIndex = sourceCamera.apertureIndex;
+                destCamera.shutterIndex = sourceCamera.shutterIndex;
+                destCamera.isoIndex = sourceCamera.isoIndex;
             }
         }
     }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QDateTime>
 #include <QDir>
 #include <QObject>
 #include <QQmlApplicationEngine>
@@ -14,6 +15,7 @@ class Capture : public QObject
 private:
     Q_PROPERTY(int numCaptured READ numCaptured NOTIFY numCapturedChanged)
     Q_PROPERTY(QString captureRoot READ captureRoot WRITE setCaptureRoot NOTIFY captureRootChanged)
+    Q_PROPERTY(bool autoSave READ autoSave WRITE setAutoSave NOTIFY autoSaveChanged)
 public:
     Capture(QQmlApplicationEngine* const qmlEngine, QObject *parent = 0);
     ~Capture();
@@ -21,9 +23,12 @@ public:
     int numCaptured() const;
     QString captureRoot() const;
     void setCaptureRoot(const QString& newCaptureRoot);
+    bool autoSave() const;
+    void setAutoSave(bool autoSave);
 signals:
     void numCapturedChanged(const int numCaptured);
     void captureRootChanged(const QString& captureRoot);
+    void autoSaveChanged(bool autoSave);
 public slots:
     void newCapture();
     void saveCaptureToDisk();
@@ -35,6 +40,7 @@ private:
     gp::Context gpcontext;
     std::vector<gp::Camera> m_gp_cameras;
     int m_num_captured;
-    int m_capture_round;
+    QDateTime m_capture_time;
     QString m_capture_root;
+    bool m_auto_save;
 };

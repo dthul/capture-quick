@@ -1,6 +1,7 @@
 #include "image.h"
 
 #include <fstream>
+#include <iostream>
 
 Image::Image() {}
 
@@ -28,9 +29,13 @@ std::size_t Image::size() const {
     return m_buffer.size();
 }
 
-void Image::save(const std::string& fileName) const {
+void Image::save(const std::string& fileName) {
     // TODO: error handling
+    if (fileName == m_file_path)
+        return;
+    std::cout << "Saving as " << fileName << std::endl;
     std::ofstream out(fileName, std::ofstream::binary);
     out.write(m_buffer.data(), m_buffer.size());
     out.close();
+    m_file_path = fileName;
 }

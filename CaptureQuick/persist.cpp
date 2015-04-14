@@ -5,8 +5,10 @@
 #include <QSettings>
 #include <QStandardPaths>
 
-void Persist::saveImagesToDisk(QList<Camera*> const& cameras) {
+void Persist::saveImagesToDisk(QList<Camera*> const& cameras, QString prefix) {
     const QDateTime now(QDateTime::currentDateTimeUtc());
+    if (prefix.isNull())
+        prefix = QString::number(now.toMSecsSinceEpoch());
     auto destinationFolders = getDestinationFolders(cameras);
     for (int i = 0; i < cameras.length(); ++i) {
         auto camera = cameras[i];
@@ -17,7 +19,7 @@ void Persist::saveImagesToDisk(QList<Camera*> const& cameras) {
                 continue;
             const QDir destinationFolder(destinationFolders[i]);
             // Use the current time as the filename
-            const QString fileName = QString::number(now.toMSecsSinceEpoch()) + ".jpg";
+            const QString fileName = prefix + ".jpg";
             if (destinationFolder.exists(fileName))
                 // TODO: throw error instead
                 continue;
@@ -33,7 +35,7 @@ QList<QString> Persist::getDestinationFolders(QList<Camera*> const& cameras) {
     QSettings settings;
     const QString defaultCaptureLocation =
             QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
-    QString captureRoot = settings.value("capture/root_path", defaultCaptureLocation).toString();
+    QString captureRoot = QDir(settings.value("capture/root_path", defaultCaptureLocation).toString()).absolutePath();
     // There is no function in Qt to concatenate paths (wtf!) so we hackishly do it ourselves
     const bool addSeparator = !defaultCaptureLocation.endsWith(QDir::separator());
 

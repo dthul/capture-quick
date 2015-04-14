@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <vector>
 
 #include <QImage>
@@ -21,10 +22,11 @@ public:
     const QImage& toQImage() const;
     char const* data() const;
     std::size_t size() const;
-    void save(const std::string& fileName) const;
+    void save(const std::string& fileName);
 private:
     std::vector<char> m_buffer;
     QImage m_qimage;
+    std::string m_file_path;
 };
 
 Q_DECLARE_METATYPE(Image)

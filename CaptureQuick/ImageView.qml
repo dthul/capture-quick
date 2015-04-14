@@ -350,6 +350,10 @@ Item {
                     text: "Trigger"
                     onClicked: model.trigger()
                 }
+                Button {
+                    text: "Broadcast settings"
+                    onClicked: app.broadcastSettings(imageView.model)
+                }
             }
         }
 
