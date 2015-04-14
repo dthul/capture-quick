@@ -10,7 +10,7 @@ import "qrc:/fontawesome.js" as FontAwesome
 
 ApplicationWindow {
     id: app
-    title: qsTr("Hello World")
+    title: qsTr("Capture Quick")
     width: 1920
     height: 1080
     visible: true
