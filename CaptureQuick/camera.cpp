@@ -186,17 +186,17 @@ int Camera::isoIndex() const {
 }
 
 void Camera::setApertureIndex(const int index) {
-    if (index >= 0 && index < m_apertureChoices.size())
+    if (index >= 0 && index < m_apertureChoices.size() && index != m_aperture)
         QMetaObject::invokeMethod(m_controller, "setAperture", Qt::QueuedConnection, Q_ARG(int, index));
 }
 
 void Camera::setShutterIndex(const int index) {
-    if (index >= 0 && index < m_shutterChoices.size())
+    if (index >= 0 && index < m_shutterChoices.size() && index != m_shutter)
         QMetaObject::invokeMethod(m_controller, "setShutter", Qt::QueuedConnection, Q_ARG(int, index));
 }
 
 void Camera::setIsoIndex(const int index) {
-    if (index >= 0 && index < m_isoChoices.size())
+    if (index >= 0 && index < m_isoChoices.size() && index != m_iso)
         QMetaObject::invokeMethod(m_controller, "setIso", Qt::QueuedConnection, Q_ARG(int, index));
 }
 

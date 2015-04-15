@@ -37,6 +37,12 @@ Capture::Capture(QQmlApplicationEngine* const qmlEngine, QObject *parent) :
 
 Capture::~Capture()
 {
+    // TODO: somehow destroy the gp::Cameras in parallel, since destroying
+    // them sequentially is unnecessary and takes a lot of time
+    // HACK for now: first switch all cameras to capture mode.
+    // This speeds the process up a little
+    for (auto camera : m_cameras)
+        reinterpret_cast<Camera*>(camera)->setState(Camera::CameraState::CAMERA_CAPTURE);
     for (auto qcamera : m_cameras) {
         delete qcamera;
     }
