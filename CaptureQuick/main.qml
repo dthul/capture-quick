@@ -255,7 +255,7 @@ ApplicationWindow {
     }
 
     function broadcastSettings(sourceCamera) {
-        for (var i = 0; i < cameras.lenght; ++i) {
+        for (var i = 0; i < cameras.length; ++i) {
             var destCamera = cameras[i];
             if (sourceCamera !== destCamera) {
                 destCamera.apertureIndex = sourceCamera.apertureIndex;
