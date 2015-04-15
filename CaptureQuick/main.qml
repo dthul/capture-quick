@@ -119,23 +119,24 @@ ApplicationWindow {
                 Layout.alignment: Qt.AlignTop
                 Layout.maximumWidth: 0.15 * parent.width
 
+                Label {
+                    text: "1. Set up cameras"
+                    font.bold: true
+                }
                 Button {
-                    text: qsTr("Capture Mode")
+                    text: qsTr("Activate Live Preview Mode")
                     //id: button1
                     onClicked: {
                         for (var i = 0; i < cameras.length; ++i) {
-                            cameras[i].state = Camera.CAMERA_CAPTURE
+                            cameras[i].state = Camera.CAMERA_PREVIEW
                         }
                     }
+                    anchors.left: parent.left
+                    anchors.right: parent.right
                 }
-                Button {
-                    text: qsTr("Trigger All")
-                    onClicked: {
-                        capture.newCapture()
-                        for (var i = 0; i < cameras.length; ++i) {
-                            cameras[i].trigger()
-                        }
-                    }
+                Label {
+                    text: "2. Configure Capture"
+                    font.bold: true
                 }
                 FileDialog {
                     id: captureRootDialog
@@ -154,11 +155,23 @@ ApplicationWindow {
                         capture.captureRoot = path;
                     }
                 }
+                Label {
+                    text: "Destination directory:"
+                }
                 RowLayout {
+                    id: rowLayout2
                     Text {
                         Layout.fillWidth: true
                         text: capture.captureRoot
                         elide: Text.ElideLeft
+                        MouseArea {
+                            id: captureRootHover
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            property bool hovered: false
+                            onEntered: hovered = true
+                            onExited: hovered = false
+                        }
                     }
                     Text {
                         id: settings
@@ -172,10 +185,6 @@ ApplicationWindow {
                         }
                     }
                 }
-                Button {
-                    text: qsTr("Save captured images")
-                    onClicked: capture.saveCaptureToDisk()
-                }
                 CheckBox {
                     id: autoSaveCheckbox
                     text: "Auto Save"
@@ -187,14 +196,38 @@ ApplicationWindow {
                         }
                     }
                 }
+                Label {
+                    text: "3. Capture!"
+                    font.bold: true
+                }
                 Button {
-                    text: qsTr("Live Preview Mode")
+                    text: qsTr("Activate Capture Mode")
                     //id: button1
                     onClicked: {
                         for (var i = 0; i < cameras.length; ++i) {
-                            cameras[i].state = Camera.CAMERA_PREVIEW
+                            cameras[i].state = Camera.CAMERA_CAPTURE
                         }
                     }
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                }
+                Button {
+                    text: qsTr("Capture")
+                    onClicked: {
+                        capture.newCapture()
+                        for (var i = 0; i < cameras.length; ++i) {
+                            cameras[i].trigger()
+                        }
+                    }
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                }
+                Button {
+                    text: qsTr("Save captured images")
+                    onClicked: capture.saveCaptureToDisk()
+                    enabled: !autoSaveCheckbox.checked
+                    anchors.left: parent.left
+                    anchors.right: parent.right
                 }
                 Text {
                     text: capture.numCaptured + " / " + cameras.length
@@ -203,12 +236,20 @@ ApplicationWindow {
         }
 
         Tooltip {
-            tool: autoSaveCheckbox
             text: "Saves the captured images as\nsoon as every camera triggered"
             opacity: autoSaveCheckbox.hovered ? 0.8 : 0
             // Hacky hack hack
             x: autoSaveCheckbox.mapToItem(mainFrame, 0 * columnLayout1.x * autoSaveCheckbox.x, 0).x + autoSaveCheckbox.width / 2 - width / 2
             y: autoSaveCheckbox.mapToItem(mainFrame, 0, 0 * columnLayout1.y * autoSaveCheckbox.y).y + autoSaveCheckbox.height + 5
+            z: 9999
+        }
+        Tooltip {
+            text: capture.captureRoot
+            opacity: captureRootHover.hovered ? 0.8 : 0
+            onOpacityChanged: console.log('opacity')
+            // Hacky hack hack
+            x: captureRootHover.mapToItem(mainFrame, 0 * rowLayout2.x * captureRootHover.x, 0).x + captureRootHover.width / 2 - width / 2
+            y: captureRootHover.mapToItem(mainFrame, 0, 0 * rowLayout2.y * captureRootHover.y).y + captureRootHover.height + 5
             z: 9999
         }
     }

@@ -1,7 +1,6 @@
 import QtQuick 2.4
 
 Rectangle {
-    property QtObject tool
     property string text
     color: "black"
     width: text.width + 20
