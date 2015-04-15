@@ -246,7 +246,6 @@ ApplicationWindow {
         Tooltip {
             text: capture.captureRoot
             opacity: captureRootHover.hovered ? 0.8 : 0
-            onOpacityChanged: console.log('opacity')
             // Hacky hack hack
             x: captureRootHover.mapToItem(mainFrame, 0 * rowLayout2.x * captureRootHover.x, 0).x + captureRootHover.width / 2 - width / 2
             y: captureRootHover.mapToItem(mainFrame, 0, 0 * rowLayout2.y * captureRootHover.y).y + captureRootHover.height + 5
