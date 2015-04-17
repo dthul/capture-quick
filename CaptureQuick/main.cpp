@@ -1,3 +1,7 @@
+#ifdef MACOS
+#include <cstdlib>
+#endif
+
 #include <QApplication>
 #include <QFileInfo>
 #include <QQmlApplicationEngine>
@@ -11,6 +15,9 @@
 
 int main(int argc, char *argv[])
 {
+#ifdef MACOS
+    system("killall PTPCamera");
+#endif
     QApplication app(argc, argv);
     app.setOrganizationName("Aalto");
     app.setOrganizationDomain("aalto.fi");

@@ -12,7 +12,9 @@
 Capture::Capture(QQmlApplicationEngine* const qmlEngine, QObject *parent) :
     QObject(parent),
     m_qml_engine(qmlEngine),
-    m_num_captured(0)
+    m_num_captured(0),
+    m_triggerBox(new TriggerBox()),
+    m_triggerBoxThread(new QThread())
 {
     QSettings settings;
     const QString defaultCaptureLocation =
@@ -26,6 +28,11 @@ Capture::Capture(QQmlApplicationEngine* const qmlEngine, QObject *parent) :
         m_cameras.append(camera);
         connect(camera, &Camera::imageUrlChanged, this, &Capture::newImageCaptured);
     }
+
+    m_triggerBox->moveToThread(m_triggerBoxThread);
+    std::cout << "triggerBoxThread: " << std::hex << m_triggerBoxThread << std::endl;
+    connect(m_triggerBoxThread, &QThread::started, m_triggerBox, &TriggerBox::init);
+    m_triggerBoxThread->start();
 
     // will be freed by Qt
     LiveImageProvider *liveImgProvider = new LiveImageProvider(reinterpret_cast<QList<Camera*>*>(&m_cameras));
@@ -43,6 +50,14 @@ Capture::~Capture()
     // This speeds the process up a little
     for (auto camera : m_cameras)
         reinterpret_cast<Camera*>(camera)->setState(Camera::CameraState::CAMERA_CAPTURE);
+
+    if (m_triggerBoxThread) {
+        m_triggerBoxThread->quit();
+        m_triggerBoxThread->wait(3);
+    }
+    delete m_triggerBox;
+    delete m_triggerBoxThread;
+
     for (auto qcamera : m_cameras) {
         delete qcamera;
     }
@@ -100,4 +115,12 @@ void Capture::setAutoSave(bool autoSave) {
     m_auto_save = autoSave;
     settings.setValue("capture/auto_save", m_auto_save);
     emit autoSaveChanged(m_auto_save);
+}
+
+void Capture::focusAll() {
+    QMetaObject::invokeMethod(m_triggerBox, "focusAll", Qt::QueuedConnection);
+}
+
+void Capture::triggerAll() {
+    QMetaObject::invokeMethod(m_triggerBox, "triggerAll", Qt::QueuedConnection);
 }

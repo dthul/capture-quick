@@ -8,6 +8,7 @@
 #include "camera.h"
 #include "gputil.h"
 #include "liveimageprovider.h"
+#include "triggerbox.h"
 
 class Capture : public QObject
 {
@@ -32,6 +33,8 @@ signals:
 public slots:
     void newCapture();
     void saveCaptureToDisk();
+    void focusAll();
+    void triggerAll();
 private slots:
     void newImageCaptured();
 private:
@@ -43,4 +46,6 @@ private:
     QDateTime m_capture_time;
     QString m_capture_root;
     bool m_auto_save;
+    TriggerBox *m_triggerBox;
+    QThread *m_triggerBoxThread;
 };

@@ -215,9 +215,7 @@ ApplicationWindow {
                     text: qsTr("Capture")
                     onClicked: {
                         capture.newCapture()
-                        for (var i = 0; i < cameras.length; ++i) {
-                            cameras[i].trigger()
-                        }
+                        capture.triggerAll()
                     }
                     anchors.left: parent.left
                     anchors.right: parent.right
@@ -231,6 +229,10 @@ ApplicationWindow {
                 }
                 Text {
                     text: capture.numCaptured + " / " + cameras.length
+                }
+                Button {
+                    text: "Focus"
+                    onClicked: capture.focusAll()
                 }
             }
         }
