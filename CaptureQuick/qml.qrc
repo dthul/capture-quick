@@ -4,5 +4,6 @@
         <file>ImageView.qml</file>
         <file>BusySpinner.qml</file>
         <file>Tooltip.qml</file>
+        <file>EmptyImageView.qml</file>
     </qresource>
 </RCC>

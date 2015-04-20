@@ -42,7 +42,7 @@ ApplicationWindow {
             anchors.fill: parent
             anchors.margins: 5
 
-            GridLayout {
+/*            GridLayout {
                 id: imageGrid
                 columns: 3
                 rows: 3
@@ -51,66 +51,31 @@ ApplicationWindow {
 
                 ImageView {
                     id: imageView0
-                    model: cameras[0]
+                    model: capture.allCameras[0]
 
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                 }
-                ImageView {
-                    id: imageView1
-                    model: cameras[1]
-
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                }
-                ImageView {
-                    id: imageView2
-                    model: cameras[2]
-
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                }
-                ImageView {
-                    id: imageView3
-                    model: cameras[3]
-
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                }
-                ImageView {
-                    id: imageView4
-                    model: cameras[4]
-
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                }
-                ImageView {
-                    id: imageView5
-                    model: cameras[5]
-
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                }
-                ImageView {
-                    id: imageView6
-                    model: cameras[6]
-
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                }
-                ImageView {
-                    id: imageView7
-                    model: cameras[7]
-
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                }
-                ImageView {
-                    id: imageView8
-                    model: cameras[8]
-
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
+            }
+*/
+            GridView {
+                id: imageGrid
+                model: capture.allCameras
+                cellWidth: width / capture.numCols
+                cellHeight: height / capture.numRows
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                /*delegate: ImageView {
+                    height: imageGrid.cellHeight
+                    width: imageGrid.cellWidth
+                }*/
+                delegate: Component {
+                    Loader {
+                        id: imageLoader
+                        height: imageGrid.cellHeight
+                        width: imageGrid.cellWidth
+                        source: capture.allCameras[index] ? "ImageView.qml" : "EmptyImageView.qml"
+                    }
                 }
             }
 
@@ -127,8 +92,8 @@ ApplicationWindow {
                     text: qsTr("Activate Live Preview Mode")
                     //id: button1
                     onClicked: {
-                        for (var i = 0; i < cameras.length; ++i) {
-                            cameras[i].state = Camera.CAMERA_PREVIEW
+                        for (var i = 0; i < capture.allCameras.length; ++i) {
+                            capture.allCameras[i].state = Camera.CAMERA_PREVIEW
                         }
                     }
                     anchors.left: parent.left
@@ -204,8 +169,8 @@ ApplicationWindow {
                     text: qsTr("Activate Capture Mode")
                     //id: button1
                     onClicked: {
-                        for (var i = 0; i < cameras.length; ++i) {
-                            cameras[i].state = Camera.CAMERA_CAPTURE
+                        for (var i = 0; i < capture.allCameras.length; ++i) {
+                            capture.allCameras[i].state = Camera.CAMERA_CAPTURE
                         }
                     }
                     anchors.left: parent.left
@@ -228,7 +193,7 @@ ApplicationWindow {
                     anchors.right: parent.right
                 }
                 Text {
-                    text: capture.numCaptured + " / " + cameras.length
+                    text: capture.numCaptured + " / " + capture.allCameras.length
                 }
                 Button {
                     text: "Focus"
@@ -256,8 +221,8 @@ ApplicationWindow {
     }
 
     function broadcastSettings(sourceCamera) {
-        for (var i = 0; i < cameras.length; ++i) {
-            var destCamera = cameras[i];
+        for (var i = 0; i < capture.allCameras.length; ++i) {
+            var destCamera = capture.allCameras[i];
             if (sourceCamera !== destCamera) {
                 destCamera.apertureIndex = sourceCamera.apertureIndex;
                 destCamera.shutterIndex = sourceCamera.shutterIndex;
@@ -266,10 +231,17 @@ ApplicationWindow {
         }
     }
 
-    Connections {
-        //target: liveImageProvider
-        onStateChanged: {
-            // refresh image grid here
-        }
+    function reloadImageGrid() {
+        var newChild = Qt.createComponent("ImageView.qml")
+        Qt.createQmlObject()
+        newChild.model = capture.allCameras[0]
+        newChild.Layout.fillHeight = true
+        newChild.Layout.fillWidth = true
+        imageGrid.children = [newChild]
     }
+
+    /*Connections {
+        target: capture
+        onAllCamerasChanged: console.log("gotcha!")
+    }*/
 }

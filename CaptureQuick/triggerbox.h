@@ -1,7 +1,5 @@
 #pragma once
 
-#include <boost/asio.hpp>
-
 #include <QObject>
 #include <QtSerialPort/QtSerialPort>
 

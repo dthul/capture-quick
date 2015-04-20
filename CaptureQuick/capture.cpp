@@ -1,6 +1,7 @@
 #include "capture.h"
 
 #include <iostream>
+#include <cmath>
 
 #include <QQmlContext>
 #include <QSettings>
@@ -35,11 +36,13 @@ Capture::Capture(QQmlApplicationEngine* const qmlEngine, QObject *parent) :
     m_triggerBoxThread->start();
 
     // will be freed by Qt
-    LiveImageProvider *liveImgProvider = new LiveImageProvider(reinterpret_cast<QList<Camera*>*>(&m_cameras));
+    LiveImageProvider *liveImgProvider = new LiveImageProvider(&m_cameras);
     m_qml_engine->addImageProvider("live", liveImgProvider);
 
-    m_qml_engine->rootContext()->setContextProperty("cameras", QVariant::fromValue(m_cameras));
     m_qml_engine->rootContext()->setContextProperty("capture", this);
+
+    m_num_rows = std::floor(std::sqrt(m_cameras.size()));
+    m_num_cols = std::ceil(static_cast<float>(m_cameras.size()) / m_num_rows);
 }
 
 Capture::~Capture()
@@ -49,7 +52,7 @@ Capture::~Capture()
     // HACK for now: first switch all cameras to capture mode.
     // This speeds the process up a little
     for (auto camera : m_cameras)
-        reinterpret_cast<Camera*>(camera)->setState(Camera::CameraState::CAMERA_CAPTURE);
+        camera->setState(Camera::CameraState::CAMERA_CAPTURE);
 
     if (m_triggerBoxThread) {
         m_triggerBoxThread->quit();
@@ -58,9 +61,8 @@ Capture::~Capture()
     delete m_triggerBox;
     delete m_triggerBoxThread;
 
-    for (auto qcamera : m_cameras) {
-        delete qcamera;
-    }
+    for (auto camera : m_cameras)
+        delete camera;
     m_cameras.clear();
     // This is the call that actually releases the cameras
     // by destroying the underlying gp::Cameras
@@ -73,19 +75,18 @@ int Capture::numCaptured() const {
 
 void Capture::newCapture() {
     m_capture_time = QDateTime::currentDateTimeUtc();
-    for (auto qcamera : m_cameras)
-        reinterpret_cast<Camera*>(qcamera)->clearLatestImage();
+    for (auto camera : m_cameras)
+        camera->clearLatestImage();
 }
 
 void Capture::saveCaptureToDisk() {
     std::cout << "Saving capture to disk" << std::endl;
-    Persist::saveImagesToDisk(*reinterpret_cast<QList<Camera*>*>(&m_cameras), QString::number(m_capture_time.toMSecsSinceEpoch()));
+    Persist::saveImagesToDisk(m_cameras, QString::number(m_capture_time.toMSecsSinceEpoch()));
 }
 
 void Capture::newImageCaptured() {
     int num_captured = 0;
-    for (auto qamera : m_cameras) {
-        Camera* camera = reinterpret_cast<Camera*>(qamera);
+    for (auto camera : m_cameras) {
         if (!camera->latestImage().isNull())
             ++num_captured;
     }
@@ -123,4 +124,17 @@ void Capture::focusAll() {
 
 void Capture::triggerAll() {
     QMetaObject::invokeMethod(m_triggerBox, "triggerAll", Qt::QueuedConnection);
+}
+
+QQmlListProperty<Camera> Capture::allCameras() {
+    // TODO: replace with production grade QQmlListProperty (see Qt documentation)
+    return QQmlListProperty<Camera>(this, m_cameras);
+}
+
+int Capture::numRows() const {
+    return m_num_rows;
+}
+
+int Capture::numCols() const {
+    return m_num_cols;
 }

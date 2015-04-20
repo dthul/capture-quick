@@ -8,7 +8,7 @@ import CaptureQuick 0.1 // Makes the Camera class available (registered in main.
 Item {
     id: imageView
 
-    property QtObject model: null
+    property QtObject model: capture.allCameras[index]
 
     states: State {
         name: "maximized"
@@ -89,8 +89,8 @@ Item {
         // The multiplication of the image's and imageGrid's properties with 0 is a hack to
         // enforce recomputation of the (mapped) x and y coordinates when either the image
         // or the imageGrid change size or position
-        x: image.mapToItem(mainFrame, 0 * image.width * image.x * imageGrid.x * imageGrid.width, 0).x
-        y: image.mapToItem(mainFrame, 0 * image.height * image.y * imageGrid.y * imageGrid.height, 0).y
+        x: image.mapToItem(mainFrame, 0 * image.x * imageView.x * imageLoader.x * imageView.width * imageGrid.x, 0).x
+        y: image.mapToItem(mainFrame, 0 * image.y * imageView.y * imageLoader.y * imageView.height * imageGrid.y, 0).y
 
         // Always keep the same size as the image
         width: image.width
@@ -151,6 +151,7 @@ Item {
             id: overlayImage
             width: overlay.width
             height: overlay.height
+            fillMode: Image.PreserveAspectFit
             clip: true
             source: image.source
             mipmap: true
@@ -161,9 +162,10 @@ Item {
     // the image grid.
     Image {
         id: image
-        anchors.fill: parent
-        width: parent.width
-        height: parent.height
+        //anchors.fill: parent
+        width: parent.width - 5
+        height: parent.height - 5
+        anchors.centerIn: parent
         // The "live" image provider has been registered from
         // the C++ code
         source: "image://live/" + ((model.state === Camera.CAMERA_PREVIEW) ? model.previewUrl : model.imageUrl)

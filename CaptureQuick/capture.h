@@ -4,6 +4,7 @@
 #include <QDir>
 #include <QObject>
 #include <QQmlApplicationEngine>
+#include <QQmlListProperty>
 
 #include "camera.h"
 #include "gputil.h"
@@ -17,6 +18,9 @@ private:
     Q_PROPERTY(int numCaptured READ numCaptured NOTIFY numCapturedChanged)
     Q_PROPERTY(QString captureRoot READ captureRoot WRITE setCaptureRoot NOTIFY captureRootChanged)
     Q_PROPERTY(bool autoSave READ autoSave WRITE setAutoSave NOTIFY autoSaveChanged)
+    Q_PROPERTY(QQmlListProperty<Camera> allCameras READ allCameras NOTIFY allCamerasChanged)
+    Q_PROPERTY(int numRows READ numRows NOTIFY numRowsChanged)
+    Q_PROPERTY(int numCols READ numCols NOTIFY numColsChanged)
 public:
     Capture(QQmlApplicationEngine* const qmlEngine, QObject *parent = 0);
     ~Capture();
@@ -26,10 +30,16 @@ public:
     void setCaptureRoot(const QString& newCaptureRoot);
     bool autoSave() const;
     void setAutoSave(bool autoSave);
+    QQmlListProperty<Camera> allCameras();
+    int numRows() const;
+    int numCols() const;
 signals:
     void numCapturedChanged(const int numCaptured);
     void captureRootChanged(const QString& captureRoot);
     void autoSaveChanged(bool autoSave);
+    void allCamerasChanged(QQmlListProperty<Camera> allCameras);
+    void numColsChanged(const int numCols);
+    void numRowsChanged(const int numRows);
 public slots:
     void newCapture();
     void saveCaptureToDisk();
@@ -39,7 +49,7 @@ private slots:
     void newImageCaptured();
 private:
     QQmlApplicationEngine* const m_qml_engine;
-    QList<QObject*> m_cameras;
+    QList<Camera*> m_cameras;
     gp::Context gpcontext;
     std::vector<gp::Camera> m_gp_cameras;
     int m_num_captured;
@@ -48,4 +58,6 @@ private:
     bool m_auto_save;
     TriggerBox *m_triggerBox;
     QThread *m_triggerBoxThread;
+    int m_num_rows;
+    int m_num_cols;
 };
