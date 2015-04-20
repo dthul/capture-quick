@@ -65,10 +65,6 @@ ApplicationWindow {
                 cellHeight: height / capture.numRows
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                /*delegate: ImageView {
-                    height: imageGrid.cellHeight
-                    width: imageGrid.cellWidth
-                }*/
                 delegate: Component {
                     Loader {
                         id: imageLoader
@@ -90,7 +86,6 @@ ApplicationWindow {
                 }
                 Button {
                     text: qsTr("Activate Live Preview Mode")
-                    //id: button1
                     onClicked: {
                         for (var i = 0; i < capture.allCameras.length; ++i) {
                             capture.allCameras[i].state = Camera.CAMERA_PREVIEW
@@ -113,7 +108,7 @@ ApplicationWindow {
                         // the URL that the FileDialog returns.
                         // see: http://stackoverflow.com/a/26868237/850264
                         var url = this.folder.toString();
-                        // remove prefixed "file://"
+                        // remove prefix "file://"
                         var path = url.replace(/^(file:\/{2})/,"");
                         // unescape HTML codes like '%23'
                         path = decodeURIComponent(path);

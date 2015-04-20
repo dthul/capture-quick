@@ -41,8 +41,8 @@ Capture::Capture(QQmlApplicationEngine* const qmlEngine, QObject *parent) :
 
     m_qml_engine->rootContext()->setContextProperty("capture", this);
 
-    m_num_rows = std::floor(std::sqrt(m_cameras.size()));
-    m_num_cols = std::ceil(static_cast<float>(m_cameras.size()) / m_num_rows);
+    readCameraArrangement();
+    recalculateGridSize();
 }
 
 Capture::~Capture()
@@ -131,10 +131,115 @@ QQmlListProperty<Camera> Capture::allCameras() {
     return QQmlListProperty<Camera>(this, m_cameras);
 }
 
+QQmlListProperty<Camera> Capture::uiCameras() {
+    // TODO: replace with production grade QQmlListProperty (see Qt documentation)
+    return QQmlListProperty<Camera>(this, m_ui_cameras);
+}
+
 int Capture::numRows() const {
     return m_num_rows;
 }
 
 int Capture::numCols() const {
     return m_num_cols;
+}
+
+void Capture::recalculateGridSize() {
+    m_num_rows = std::floor(std::sqrt(m_ui_cameras.size()));
+    m_num_cols = std::ceil(static_cast<float>(m_ui_cameras.size()) / m_num_rows);
+    emit numRowsChanged(m_num_rows);
+    emit numColsChanged(m_num_cols);
+}
+
+void Capture::readCameraArrangement(const QString& fileName) {
+    QFile data(fileName);
+    QString arrangement;
+    if (data.open(QFile::ReadOnly)) {
+        QTextStream in(&data);
+        arrangement = in.readAll();
+    }
+    else {
+        return;
+        // TODO: error
+    }
+    auto settings = new QSettings();
+    settings->setValue("capture/camera_arrangement", arrangement);
+    delete settings;
+    // Delete settings before calling readCameraArrangement
+    readCameraArrangement();
+}
+
+void Capture::writeCameraArrangement(const QString& fileName) {
+    writeCameraArrangement();
+    QSettings settings;
+    QString arrangement = settings.value("capture/camera_arrangement").toString();
+    QFile data(fileName);
+    if (data.open(QFile::WriteOnly)) {
+        QTextStream out(&data);
+        out << arrangement;
+        data.close();
+    }
+}
+
+void Capture::readCameraArrangement() {
+    QSettings settings;
+    QString arrangement = settings.value("capture/camera_arrangement").toString();
+    if (!arrangement.isNull()) {
+        QList<Camera*> ui_cameras;
+        int num_rows, num_cols;
+        QTextStream in(&arrangement);
+        // TODO: catch error when something during reading goes wrong
+        // and set m_ui_cameras to m_cameras
+        in >> num_rows;
+        in >> num_cols;
+        for (auto r = 0; r < num_rows; ++r) {
+            QString line = in.readLine();
+            QStringList cameraNames = line.split('\t');
+            int numCamerasAdded = 0;
+            for (QString cameraName : cameraNames) {
+                if (numCamerasAdded >= num_cols)
+                    break;
+                Camera *camera = findCameraByName(cameraName);
+                ui_cameras.push_back(camera);
+                ++numCamerasAdded;
+            }
+            // Was the line shorter than num_cols? Fill it up with nullptrs
+            for (auto i = numCamerasAdded; i < num_cols; ++i)
+                ui_cameras.push_back(nullptr);
+        }
+        m_ui_cameras = ui_cameras;
+    }
+    else {
+        m_ui_cameras = m_cameras;
+    }
+    emit uiCamerasChanged(uiCameras());
+    recalculateGridSize();
+}
+
+void Capture::writeCameraArrangement() {
+    QString arrangement;
+    QTextStream out(&arrangement);
+    out << m_num_rows << "\t" << m_num_cols << "\n";
+    for (auto r = 0; r < m_num_rows; ++r) {
+        for (auto c = 0; c < m_num_cols; ++c) {
+            auto index = r * m_num_cols + c;
+            Camera* camera = index < m_cameras.size() ? m_cameras[index] : nullptr;
+            if (camera)
+                out << camera->name();
+            else
+                out << "0";
+            if (c < m_num_cols - 1)
+                out << "    ";
+        }
+        out << "\n";
+    }
+    QSettings settings;
+    settings.setValue("capture/camera_arrangement", arrangement);
+}
+
+Camera* Capture::findCameraByName(const QString& name) {
+    for (auto camera : m_cameras)
+        if (camera->name() == name)
+            return camera;
+    return nullptr;
 }
