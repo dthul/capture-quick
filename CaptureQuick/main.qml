@@ -1,6 +1,6 @@
 import QtQuick 2.4
 import QtQuick.Controls 1.3
-import QtQuick.Dialogs 1.0
+import QtQuick.Dialogs 1.2
 import QtQuick.Layouts 1.1
 import QtQuick.Window 2.2
 
@@ -15,21 +15,60 @@ ApplicationWindow {
     height: 1080
     visible: true
 
+    function extractPathFromURL(url) {
+        // More or less hacky way to extract the absolute path from
+        // the URL that the FileDialog returns.
+        // see: http://stackoverflow.com/a/26868237/850264
+        // remove prefix "file://"
+        url = url.toString()
+        var path = url.replace(/^(file:\/{2})/,"")
+        // unescape HTML codes like '%23'
+        path = decodeURIComponent(path)
+        return path
+    }
+
     FontLoader {
         source: "qrc:/fontawesome-webfont.ttf"
+    }
+
+    FileDialog {
+        id: cameraArrangementFileDialog
+        nameFilters: ["Capture Quick Arrangements (*.cqa)", "All files (*)"]
+        title: "Load Camera Arrangement"
+        onAccepted: {
+            var path = extractPathFromURL(this.fileUrl)
+            console.log("Loading camera arrangement from file...")
+            capture.loadCameraArrangementFromFile(path)
+        }
     }
 
     menuBar: MenuBar {
         Menu {
             title: qsTr("&File")
             MenuItem {
-                text: qsTr("&Open")
-                onTriggered: messageDialog.show(qsTr("Open action triggered"));
+                shortcut: "Ctrl+O"
+                text: qsTr("L&oad Camera Arrangement")
+                onTriggered: cameraArrangementFileDialog.open()
             }
             MenuItem {
-                text: qsTr("E&xit")
-                onTriggered: Qt.quit();
+                shortcut: "Ctrl+R"
+                text: qsTr("&Reset Camera Arrangement")
+                onTriggered: capture.resetCameraArrangement()
             }
+
+            MenuItem {
+                text: qsTr("E&xit")
+                onTriggered: Qt.quit()
+            }
+        }
+    }
+
+    statusBar: StatusBar {
+        RowLayout {
+            anchors.fill: parent
+            Label { text: capture.allCameras.length + " cameras connected" }
+            Label { text: capture.allConfigured ? "" : "Waiting for camera configurations" }
+            Label { text: capture.numRows + "x" + capture.numCols }
         }
     }
 
@@ -60,7 +99,7 @@ ApplicationWindow {
 */
             GridView {
                 id: imageGrid
-                model: capture.allCameras
+                model: capture.uiCameras
                 cellWidth: width / capture.numCols
                 cellHeight: height / capture.numRows
                 Layout.fillWidth: true
@@ -104,15 +143,8 @@ ApplicationWindow {
                     folder: capture.captureRoot
                     selectFolder: true
                     onAccepted: {
-                        // More or less hacky way to extract the absolute path from
-                        // the URL that the FileDialog returns.
-                        // see: http://stackoverflow.com/a/26868237/850264
-                        var url = this.folder.toString();
-                        // remove prefix "file://"
-                        var path = url.replace(/^(file:\/{2})/,"");
-                        // unescape HTML codes like '%23'
-                        path = decodeURIComponent(path);
-                        capture.captureRoot = path;
+                        var path = extractPathFromURL(this.folder)
+                        capture.captureRoot = path
                     }
                 }
                 Label {
@@ -235,8 +267,15 @@ ApplicationWindow {
         imageGrid.children = [newChild]
     }
 
-    /*Connections {
+    MessageDialog {
+        id: alertDialog
+    }
+
+    Connections {
         target: capture
-        onAllCamerasChanged: console.log("gotcha!")
-    }*/
+        onAlert: {
+            alertDialog.text = message
+            alertDialog.open()
+        }
+    }
 }

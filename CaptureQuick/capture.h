@@ -22,6 +22,7 @@ private:
     Q_PROPERTY(QQmlListProperty<Camera> uiCameras READ uiCameras NOTIFY uiCamerasChanged)
     Q_PROPERTY(int numRows READ numRows NOTIFY numRowsChanged)
     Q_PROPERTY(int numCols READ numCols NOTIFY numColsChanged)
+    Q_PROPERTY(bool allConfigured READ allConfigured NOTIFY allConfiguredChanged)
 public:
     Capture(QQmlApplicationEngine* const qmlEngine, QObject *parent = 0);
     ~Capture();
@@ -35,6 +36,9 @@ public:
     QQmlListProperty<Camera> uiCameras();
     int numRows() const;
     int numCols() const;
+    bool allConfigured() const;
+    static int countUiCameras(QQmlListProperty<Camera> *property);
+    static Camera* atUiCameras(QQmlListProperty<Camera> *property, int index);
 signals:
     void numCapturedChanged(const int numCaptured);
     void captureRootChanged(const QString& captureRoot);
@@ -43,19 +47,24 @@ signals:
     void uiCamerasChanged(QQmlListProperty<Camera> allCameras);
     void numColsChanged(const int numCols);
     void numRowsChanged(const int numRows);
+    void alert(QString message);
+    void allConfiguredChanged(bool configured);
 public slots:
     void newCapture();
     void saveCaptureToDisk();
     void focusAll();
     void triggerAll();
+    void loadCameraArrangementFromFile(const QString& fileName);
+    void writeCameraArrangementToFile(const QString& fileName);
+    void resetCameraArrangement();
 private slots:
     void newImageCaptured();
+    void cameraNameChanged(const QString& name);
 private:
     void recalculateGridSize();
-    void readCameraArrangement(const QString& fileName);
-    void writeCameraArrangement(const QString& fileName);
-    void readCameraArrangement();
-    void writeCameraArrangement();
+    QString serializeCameraArrangement();
+    void loadCameraArrangement(QString arrangement);
+    void loadCameraArrangementFromSettings();
     Camera* findCameraByName(const QString& name);
     QQmlApplicationEngine* const m_qml_engine;
     QList<Camera*> m_cameras; // A list of all connected cameras. Does not contain null pointers
@@ -70,4 +79,5 @@ private:
     QThread *m_triggerBoxThread;
     int m_num_rows;
     int m_num_cols;
+    bool m_all_camera_names_known;
 };

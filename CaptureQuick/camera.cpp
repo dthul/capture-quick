@@ -54,7 +54,9 @@ Camera::Camera(gp::Camera* const gp_camera, QObject *parent) :
     m_eventListenerThread->start();
 
     // Read this camera's config
-    readConfig();
+    // readConfig();
+    // Let Capture call this function so that it has time to connect its
+    // slots to our signals before the config is read
 }
 
 Camera::~Camera()
@@ -102,6 +104,8 @@ QString Camera::name() const {
 }
 
 void Camera::c_setName(const QString& name) {
+    if (name == m_name)
+        return;
     m_name = name;
     if (m_state == CAMERA_INIT) {
         startPreview();
@@ -201,6 +205,8 @@ void Camera::setIsoIndex(const int index) {
 }
 
 void Camera::c_setApertureIndex(const int aperture) {
+    if (aperture == m_aperture)
+        return;
     if (aperture >= 0 && aperture < m_apertureChoices.size())
         m_aperture = aperture;
     else
@@ -210,6 +216,8 @@ void Camera::c_setApertureIndex(const int aperture) {
 }
 
 void Camera::c_setShutterIndex(const int shutter) {
+    if (shutter == m_shutter)
+        return;
     if (shutter >= 0 && shutter < m_shutterChoices.size())
         m_shutter = shutter;
     else
@@ -219,6 +227,8 @@ void Camera::c_setShutterIndex(const int shutter) {
 }
 
 void Camera::c_setIsoIndex(const int iso) {
+    if (iso == m_iso)
+        return;
     if (iso >= 0 && iso < m_isoChoices.size())
         m_iso = iso;
     else
@@ -240,6 +250,8 @@ QStringList Camera::isoChoices() const {
 }
 
 void Camera::c_setApertureChoices(const QList<QString>& newApertureChoices) {
+    if (newApertureChoices == m_apertureChoices)
+        return;
     m_apertureChoices = newApertureChoices;
     if (m_aperture >= m_apertureChoices.size()) {
         m_aperture = m_apertureChoices.size() == 0 ? -1 : 0;
@@ -250,6 +262,8 @@ void Camera::c_setApertureChoices(const QList<QString>& newApertureChoices) {
 }
 
 void Camera::c_setShutterChoices(const QList<QString>& newShutterChoices) {
+    if (newShutterChoices == m_shutterChoices)
+        return;
     m_shutterChoices = newShutterChoices;
     if (m_shutter >= m_shutterChoices.size()) {
         m_shutter = m_shutterChoices.size() == 0 ? -1 : 0;
@@ -261,6 +275,8 @@ void Camera::c_setShutterChoices(const QList<QString>& newShutterChoices) {
 }
 
 void Camera::c_setIsoChoices(const QList<QString>& newIsoChoices) {
+    if (newIsoChoices == m_isoChoices)
+        return;
     m_isoChoices = newIsoChoices;
     if (m_iso >= m_isoChoices.size()) {
         m_iso = m_isoChoices.size() == 0 ? -1 : 0;

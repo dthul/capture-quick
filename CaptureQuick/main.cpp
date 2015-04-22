@@ -23,6 +23,8 @@ int main(int argc, char *argv[])
     app.setOrganizationDomain("aalto.fi");
     app.setApplicationName("CaptureQuick");
 
+    qmlRegisterUncreatableType<Capture>("CaptureQuick", 0, 1, "Capture", "Capture can't be instantiated from QML");
+
     // Makes the Camera class's Enum available to QML
     qmlRegisterUncreatableType<Camera>("CaptureQuick", 0, 1, "Camera", "Cameras can't be instantiated from QML");
     qRegisterMetaType<QFileInfo>("QFileInfo");

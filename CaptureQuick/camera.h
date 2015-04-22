@@ -108,6 +108,7 @@ public slots:
     void trigger();
     void clearLatestImage();
     void saveImage(const QString& fileName);
+    void readConfig();
 private slots:
     // These slots are invoked from the controller after
     // a configuration has been requested by this class
@@ -127,7 +128,6 @@ private slots:
 
 private:
     // Will request a configuration read from the controller.
-    void readConfig();
     void reset();
 
     gp::Camera* m_camera = nullptr;

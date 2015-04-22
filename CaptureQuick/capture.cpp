@@ -15,7 +15,8 @@ Capture::Capture(QQmlApplicationEngine* const qmlEngine, QObject *parent) :
     m_qml_engine(qmlEngine),
     m_num_captured(0),
     m_triggerBox(new TriggerBox()),
-    m_triggerBoxThread(new QThread())
+    m_triggerBoxThread(new QThread()),
+    m_all_camera_names_known(false)
 {
     QSettings settings;
     const QString defaultCaptureLocation =
@@ -28,6 +29,8 @@ Capture::Capture(QQmlApplicationEngine* const qmlEngine, QObject *parent) :
         Camera* camera = new Camera(&gp_camera);
         m_cameras.append(camera);
         connect(camera, &Camera::imageUrlChanged, this, &Capture::newImageCaptured);
+        connect(camera, &Camera::nameChanged, this, &Capture::cameraNameChanged);
+        camera->readConfig();
     }
 
     m_triggerBox->moveToThread(m_triggerBoxThread);
@@ -40,9 +43,6 @@ Capture::Capture(QQmlApplicationEngine* const qmlEngine, QObject *parent) :
     m_qml_engine->addImageProvider("live", liveImgProvider);
 
     m_qml_engine->rootContext()->setContextProperty("capture", this);
-
-    readCameraArrangement();
-    recalculateGridSize();
 }
 
 Capture::~Capture()
@@ -131,9 +131,18 @@ QQmlListProperty<Camera> Capture::allCameras() {
     return QQmlListProperty<Camera>(this, m_cameras);
 }
 
+int Capture::countUiCameras(QQmlListProperty<Camera> *property) {
+    return reinterpret_cast<Capture*>(property->data)->m_ui_cameras.length();
+}
+
+Camera* Capture::atUiCameras(QQmlListProperty<Camera> *property, int index) {
+    return reinterpret_cast<Capture*>(property->data)->m_ui_cameras.at(index);
+}
+
 QQmlListProperty<Camera> Capture::uiCameras() {
     // TODO: replace with production grade QQmlListProperty (see Qt documentation)
-    return QQmlListProperty<Camera>(this, m_ui_cameras);
+    // return QQmlListProperty<Camera>(this, m_ui_cameras);
+    return QQmlListProperty<Camera>(this, this, &Capture::countUiCameras, &Capture::atUiCameras);
 }
 
 int Capture::numRows() const {
@@ -151,7 +160,13 @@ void Capture::recalculateGridSize() {
     emit numColsChanged(m_num_cols);
 }
 
-void Capture::readCameraArrangement(const QString& fileName) {
+void Capture::loadCameraArrangementFromSettings() {
+    QSettings settings;
+    const QString arrangement = settings.value("capture/camera_arrangement").toString();
+    loadCameraArrangement(arrangement);
+}
+
+void Capture::loadCameraArrangementFromFile(const QString& fileName) {
     QFile data(fileName);
     QString arrangement;
     if (data.open(QFile::ReadOnly)) {
@@ -159,20 +174,14 @@ void Capture::readCameraArrangement(const QString& fileName) {
         arrangement = in.readAll();
     }
     else {
+        emit alert("Could not open file");
         return;
-        // TODO: error
     }
-    auto settings = new QSettings();
-    settings->setValue("capture/camera_arrangement", arrangement);
-    delete settings;
-    // Delete settings before calling readCameraArrangement
-    readCameraArrangement();
+    loadCameraArrangement(arrangement);
 }
 
-void Capture::writeCameraArrangement(const QString& fileName) {
-    writeCameraArrangement();
-    QSettings settings;
-    QString arrangement = settings.value("capture/camera_arrangement").toString();
+void Capture::writeCameraArrangementToFile(const QString& fileName) {
+    QString arrangement = serializeCameraArrangement();
     QFile data(fileName);
     if (data.open(QFile::WriteOnly)) {
         QTextStream out(&data);
@@ -181,42 +190,9 @@ void Capture::writeCameraArrangement(const QString& fileName) {
     }
 }
 
-void Capture::readCameraArrangement() {
-    QSettings settings;
-    QString arrangement = settings.value("capture/camera_arrangement").toString();
-    if (!arrangement.isNull()) {
-        QList<Camera*> ui_cameras;
-        int num_rows, num_cols;
-        QTextStream in(&arrangement);
-        // TODO: catch error when something during reading goes wrong
-        // and set m_ui_cameras to m_cameras
-        in >> num_rows;
-        in >> num_cols;
-        for (auto r = 0; r < num_rows; ++r) {
-            QString line = in.readLine();
-            QStringList cameraNames = line.split('\t');
-            int numCamerasAdded = 0;
-            for (QString cameraName : cameraNames) {
-                if (numCamerasAdded >= num_cols)
-                    break;
-                Camera *camera = findCameraByName(cameraName);
-                ui_cameras.push_back(camera);
-                ++numCamerasAdded;
-            }
-            // Was the line shorter than num_cols? Fill it up with nullptrs
-            for (auto i = numCamerasAdded; i < num_cols; ++i)
-                ui_cameras.push_back(nullptr);
-        }
-        m_ui_cameras = ui_cameras;
-    }
-    else {
-        m_ui_cameras = m_cameras;
-    }
-    emit uiCamerasChanged(uiCameras());
-    recalculateGridSize();
-}
-
-void Capture::writeCameraArrangement() {
+QString Capture::serializeCameraArrangement() {
+    // TODO: throw error or return empty string when not serializable
+    // (e.g. not all cameras have a name)
     QString arrangement;
     QTextStream out(&arrangement);
     out << m_num_rows << "\t" << m_num_cols << "\n";
@@ -229,12 +205,69 @@ void Capture::writeCameraArrangement() {
             else
                 out << "0";
             if (c < m_num_cols - 1)
-                out << "    ";
+                out << "\t";
         }
         out << "\n";
     }
+    return arrangement;
+}
+
+void Capture::loadCameraArrangement(QString arrangement) {
+    if (!arrangement.isEmpty()) {
+        QList<Camera*> ui_cameras;
+        int num_rows, num_cols;
+        QTextStream in(&arrangement);
+        // TODO: catch error when something during reading goes wrong
+        // and set m_ui_cameras to m_cameras
+        QString sizeLine = in.readLine();
+        QTextStream size(&sizeLine);
+        size >> num_rows;
+        size >> num_cols;
+        for (auto r = 0; r < num_rows; ++r) {
+            QString line = in.readLine().trimmed();
+            if (line.isEmpty())
+                continue;
+            QStringList cameraNames = line.split(QRegExp("\\s+"));
+            int numCamerasAdded = 0;
+            for (auto& cameraName : cameraNames) {
+                if (numCamerasAdded >= num_cols) {
+                    std::cout << "warning: row " << r + 1 << " of the camera arrangement contains too many entries" << std::endl;
+                    break;
+                }
+                Camera *camera = findCameraByName(cameraName);
+                if (!camera && cameraName != "0") {
+                    emit alert("Could not load camera arrangement. Camera '" + cameraName + "' is missing.\nResetting camera arrangement...");
+                    resetCameraArrangement();
+                    return;
+                }
+                ui_cameras.push_back(camera);
+                ++numCamerasAdded;
+            }
+            // Was the line shorter than num_cols? Fill it up with nullptrs
+            for (auto i = numCamerasAdded; i < num_cols; ++i)
+                ui_cameras.push_back(nullptr);
+        }
+        m_num_rows = num_rows;
+        m_num_cols = num_cols;
+        emit numRowsChanged(num_rows);
+        emit numColsChanged(num_cols);
+        m_ui_cameras = ui_cameras;
+    }
+    else {
+        m_ui_cameras = m_cameras;
+        recalculateGridSize();
+    }
+    emit uiCamerasChanged(uiCameras());
     QSettings settings;
-    settings.setValue("capture/camera_arrangement", arrangement);
+    settings.setValue("capture/camera_arrangement", serializeCameraArrangement());
+}
+
+void Capture::resetCameraArrangement() {
+    m_ui_cameras = m_cameras;
+    emit uiCamerasChanged(uiCameras());
+    recalculateGridSize();
+    QSettings settings;
+    settings.setValue("capture/camera_arrangement", serializeCameraArrangement());
 }
 
 Camera* Capture::findCameraByName(const QString& name) {
@@ -242,4 +275,20 @@ Camera* Capture::findCameraByName(const QString& name) {
         if (camera->name() == name)
             return camera;
     return nullptr;
+}
+
+void Capture::cameraNameChanged(const QString& /*name*/) {
+    for (auto camera : m_cameras)
+        if (camera->name().isEmpty()) {
+            emit allConfiguredChanged(false);
+            return;
+        }
+    // We know all camera's names now
+    m_all_camera_names_known = true;
+    emit allConfiguredChanged(true);
+    loadCameraArrangementFromSettings();
+}
+
+bool Capture::allConfigured() const {
+    return m_all_camera_names_known;
 }
