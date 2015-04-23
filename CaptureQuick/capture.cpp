@@ -246,13 +246,6 @@ void Capture::loadCameraArrangement(QString arrangement) {
                     resetCameraArrangement();
                     return;
                 }
-                if (camera && ui_cameras.contains(camera)) {
-                    // This would work in theory but it seems as if Qt doesn't support
-                    // duplicate elements in models. Investigate?
-                    emit alert("Duplicate camera in arrangement: '" + cameraName + "'.\nResetting camera arrangement.");
-                    resetCameraArrangement();
-                    return;
-                }
                 ui_cameras.push_back(camera);
                 ++numCamerasAdded;
             }
