@@ -37,8 +37,8 @@ public:
     int numRows() const;
     int numCols() const;
     bool allConfigured() const;
-    static int countUiCameras(QQmlListProperty<Camera> *property);
-    static Camera* atUiCameras(QQmlListProperty<Camera> *property, int index);
+    static int countUiCameras(QQmlListProperty<Camera> *list);
+    static Camera* atUiCameras(QQmlListProperty<Camera> *list, int index);
 signals:
     void numCapturedChanged(const int numCaptured);
     void captureRootChanged(const QString& captureRoot);

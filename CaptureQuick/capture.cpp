@@ -131,18 +131,24 @@ QQmlListProperty<Camera> Capture::allCameras() {
     return QQmlListProperty<Camera>(this, m_cameras);
 }
 
-int Capture::countUiCameras(QQmlListProperty<Camera> *property) {
-    return reinterpret_cast<Capture*>(property->data)->m_ui_cameras.length();
+int Capture::countUiCameras(QQmlListProperty<Camera> *list) {
+    Capture *capture = qobject_cast<Capture*>(list->object);
+    if (capture) {
+        return capture->m_ui_cameras.length();
+    }
+    return 0;
 }
 
-Camera* Capture::atUiCameras(QQmlListProperty<Camera> *property, int index) {
-    return reinterpret_cast<Capture*>(property->data)->m_ui_cameras.at(index);
+Camera* Capture::atUiCameras(QQmlListProperty<Camera> *list, int index) {
+    Capture *capture = qobject_cast<Capture*>(list->object);
+    if (capture && index >= 0 && index < capture->m_ui_cameras.size()) {
+        return capture->m_ui_cameras.at(index);
+    }
+    return nullptr;
 }
 
 QQmlListProperty<Camera> Capture::uiCameras() {
-    // TODO: replace with production grade QQmlListProperty (see Qt documentation)
-    return QQmlListProperty<Camera>(this, m_ui_cameras);
-    // return QQmlListProperty<Camera>(this, this, &Capture::countUiCameras, &Capture::atUiCameras);
+    return QQmlListProperty<Camera>(this, 0, &Capture::countUiCameras, &Capture::atUiCameras);
 }
 
 int Capture::numRows() const {

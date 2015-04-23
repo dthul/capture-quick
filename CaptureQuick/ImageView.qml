@@ -8,7 +8,7 @@ import CaptureQuick 0.1 // Makes the Camera class available (registered in main.
 Item {
     id: imageView
 
-    property QtObject model: capture.allCameras[index]
+    property QtObject model: capture.uiCameras[index]
 
     states: State {
         name: "maximized"

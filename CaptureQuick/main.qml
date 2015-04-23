@@ -32,7 +32,7 @@ ApplicationWindow {
     }
 
     FileDialog {
-        id: cameraArrangementFileDialog
+        id: cameraArrangementLoadFileDialog
         nameFilters: ["Capture Quick Arrangements (*.cqa)", "All files (*)"]
         title: "Load Camera Arrangement"
         onAccepted: {
@@ -42,13 +42,30 @@ ApplicationWindow {
         }
     }
 
+    FileDialog {
+        id: cameraArrangementWriteFileDialog
+        nameFilters: ["Capture Quick Arrangements (*.cqa)", "All files (*)"]
+        title: "Save Camera Arrangement"
+        selectExisting: false
+        onAccepted: {
+            var path = extractPathFromURL(this.fileUrl)
+            console.log("Saving camera arrangement to file...")
+            capture.writeCameraArrangementToFile(path)
+        }
+    }
+
     menuBar: MenuBar {
         Menu {
             title: qsTr("&File")
             MenuItem {
                 shortcut: "Ctrl+O"
                 text: qsTr("L&oad Camera Arrangement")
-                onTriggered: cameraArrangementFileDialog.open()
+                onTriggered: cameraArrangementLoadFileDialog.open()
+            }
+            MenuItem {
+                shortcut: "Ctrl+S"
+                text: qsTr("S&ave Camera Arrangement")
+                onTriggered: cameraArrangementWriteFileDialog.open()
             }
             MenuItem {
                 shortcut: "Ctrl+R"
