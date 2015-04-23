@@ -18,7 +18,7 @@ private:
     Q_PROPERTY(int numCaptured READ numCaptured NOTIFY numCapturedChanged)
     Q_PROPERTY(QString captureRoot READ captureRoot WRITE setCaptureRoot NOTIFY captureRootChanged)
     Q_PROPERTY(bool autoSave READ autoSave WRITE setAutoSave NOTIFY autoSaveChanged)
-    Q_PROPERTY(QQmlListProperty<Camera> allCameras READ allCameras NOTIFY allCamerasChanged)
+    Q_PROPERTY(QQmlListProperty<Camera> allCameras READ allCameras CONSTANT)
     Q_PROPERTY(QQmlListProperty<Camera> uiCameras READ uiCameras NOTIFY uiCamerasChanged)
     Q_PROPERTY(int numRows READ numRows NOTIFY numRowsChanged)
     Q_PROPERTY(int numCols READ numCols NOTIFY numColsChanged)
@@ -43,12 +43,11 @@ signals:
     void numCapturedChanged(const int numCaptured);
     void captureRootChanged(const QString& captureRoot);
     void autoSaveChanged(bool autoSave);
-    void allCamerasChanged(QQmlListProperty<Camera> allCameras);
-    void uiCamerasChanged(QQmlListProperty<Camera> allCameras);
     void numColsChanged(const int numCols);
     void numRowsChanged(const int numRows);
     void alert(QString message);
     void allConfiguredChanged(bool configured);
+    void uiCamerasChanged();
 public slots:
     void newCapture();
     void saveCaptureToDisk();

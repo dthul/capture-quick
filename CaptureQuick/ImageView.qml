@@ -379,4 +379,10 @@ Item {
         }
     }
 
+    Component.onDestruction: {
+        // reparent the elements from the mainFrame to their
+        // initial component so that they get properly destroyed
+        overlay.parent = imageView
+        info.parent = imageView
+    }
 }

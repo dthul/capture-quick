@@ -109,7 +109,7 @@ ApplicationWindow {
                         id: imageLoader
                         height: imageGrid.cellHeight
                         width: imageGrid.cellWidth
-                        source: capture.allCameras[index] ? "ImageView.qml" : "EmptyImageView.qml"
+                        source: capture.uiCameras[index] ? "ImageView.qml" : "EmptyImageView.qml"
                     }
                 }
             }
@@ -258,14 +258,14 @@ ApplicationWindow {
         }
     }
 
-    function reloadImageGrid() {
+    /*function reloadImageGrid() {
         var newChild = Qt.createComponent("ImageView.qml")
         Qt.createQmlObject()
         newChild.model = capture.allCameras[0]
         newChild.Layout.fillHeight = true
         newChild.Layout.fillWidth = true
         imageGrid.children = [newChild]
-    }
+    }*/
 
     MessageDialog {
         id: alertDialog
@@ -274,6 +274,7 @@ ApplicationWindow {
     Connections {
         target: capture
         onAlert: {
+            // TODO: queue alert messages?
             alertDialog.text = message
             alertDialog.open()
         }

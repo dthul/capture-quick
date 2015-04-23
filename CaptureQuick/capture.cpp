@@ -141,8 +141,8 @@ Camera* Capture::atUiCameras(QQmlListProperty<Camera> *property, int index) {
 
 QQmlListProperty<Camera> Capture::uiCameras() {
     // TODO: replace with production grade QQmlListProperty (see Qt documentation)
-    // return QQmlListProperty<Camera>(this, m_ui_cameras);
-    return QQmlListProperty<Camera>(this, this, &Capture::countUiCameras, &Capture::atUiCameras);
+    return QQmlListProperty<Camera>(this, m_ui_cameras);
+    // return QQmlListProperty<Camera>(this, this, &Capture::countUiCameras, &Capture::atUiCameras);
 }
 
 int Capture::numRows() const {
@@ -199,7 +199,7 @@ QString Capture::serializeCameraArrangement() {
     for (auto r = 0; r < m_num_rows; ++r) {
         for (auto c = 0; c < m_num_cols; ++c) {
             auto index = r * m_num_cols + c;
-            Camera* camera = index < m_cameras.size() ? m_cameras[index] : nullptr;
+            Camera* camera = index < m_ui_cameras.size() ? m_ui_cameras[index] : nullptr;
             if (camera)
                 out << camera->name();
             else
@@ -236,7 +236,14 @@ void Capture::loadCameraArrangement(QString arrangement) {
                 }
                 Camera *camera = findCameraByName(cameraName);
                 if (!camera && cameraName != "0") {
-                    emit alert("Could not load camera arrangement. Camera '" + cameraName + "' is missing.\nResetting camera arrangement...");
+                    emit alert("Could not load camera arrangement. Camera '" + cameraName + "' is missing.\nResetting camera arrangement.");
+                    resetCameraArrangement();
+                    return;
+                }
+                if (camera && ui_cameras.contains(camera)) {
+                    // This would work in theory but it seems as if Qt doesn't support
+                    // duplicate elements in models. Investigate?
+                    emit alert("Duplicate camera in arrangement: '" + cameraName + "'.\nResetting camera arrangement.");
                     resetCameraArrangement();
                     return;
                 }
@@ -251,20 +258,27 @@ void Capture::loadCameraArrangement(QString arrangement) {
         m_num_cols = num_cols;
         emit numRowsChanged(num_rows);
         emit numColsChanged(num_cols);
-        m_ui_cameras = ui_cameras;
+        m_ui_cameras.clear();
+        m_ui_cameras.append(ui_cameras);
+        emit uiCamerasChanged();
+        // m_ui_cameras = ui_cameras;
     }
     else {
-        m_ui_cameras = m_cameras;
+        m_ui_cameras.clear();
+        m_ui_cameras.append(m_cameras);
+        emit uiCamerasChanged();
+        // m_ui_cameras = m_cameras;
         recalculateGridSize();
     }
-    emit uiCamerasChanged(uiCameras());
     QSettings settings;
     settings.setValue("capture/camera_arrangement", serializeCameraArrangement());
 }
 
 void Capture::resetCameraArrangement() {
-    m_ui_cameras = m_cameras;
-    emit uiCamerasChanged(uiCameras());
+    m_ui_cameras.clear();
+    m_ui_cameras.append(m_cameras);
+    emit uiCamerasChanged();
+    // m_ui_cameras = m_cameras;
     recalculateGridSize();
     QSettings settings;
     settings.setValue("capture/camera_arrangement", serializeCameraArrangement());
