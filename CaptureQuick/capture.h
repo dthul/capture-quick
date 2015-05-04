@@ -20,6 +20,7 @@ private:
     Q_PROPERTY(bool autoSave READ autoSave WRITE setAutoSave NOTIFY autoSaveChanged)
     Q_PROPERTY(QQmlListProperty<Camera> allCameras READ allCameras CONSTANT)
     Q_PROPERTY(QQmlListProperty<Camera> uiCameras READ uiCameras NOTIFY uiCamerasChanged)
+    Q_PROPERTY(QList<int> uiCameraRotations READ uiCameraRotations NOTIFY uiCameraRotationsChanged)
     Q_PROPERTY(int numRows READ numRows NOTIFY numRowsChanged)
     Q_PROPERTY(int numCols READ numCols NOTIFY numColsChanged)
     Q_PROPERTY(bool allConfigured READ allConfigured NOTIFY allConfiguredChanged)
@@ -34,6 +35,7 @@ public:
     void setAutoSave(bool autoSave);
     QQmlListProperty<Camera> allCameras();
     QQmlListProperty<Camera> uiCameras();
+    QList<int> uiCameraRotations();
     int numRows() const;
     int numCols() const;
     bool allConfigured() const;
@@ -48,6 +50,7 @@ signals:
     void alert(QString message);
     void allConfiguredChanged(bool configured);
     void uiCamerasChanged();
+    void uiCameraRotationsChanged();
 public slots:
     void newCapture();
     void saveCaptureToDisk();
@@ -68,6 +71,7 @@ private:
     QQmlApplicationEngine* const m_qml_engine;
     QList<Camera*> m_cameras; // A list of all connected cameras. Does not contain null pointers
     QList<Camera*> m_ui_cameras; // The arrangement of cameras in the UI. May contain null pointers
+    QList<int> m_ui_camera_rotations;
     gp::Context gpcontext;
     std::vector<gp::Camera> m_gp_cameras;
     int m_num_captured;

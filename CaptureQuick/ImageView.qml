@@ -149,12 +149,16 @@ Item {
         // This is the overlayed image that the user will actually see
         Image {
             id: overlayImage
-            width: overlay.width
-            height: overlay.height
+            // Works only for multiples of 90°
+            width: rotation % 180 == 0 ? overlay.width : overlay.height
+            height: rotation % 180 == 0 ? overlay.height : overlay.width
+            // anchors.fill: parent
+            anchors.centerIn: parent
             fillMode: Image.PreserveAspectFit
             clip: true
             source: image.source
             mipmap: true
+            rotation: capture.uiCameraRotations[index]
         }
     }
 

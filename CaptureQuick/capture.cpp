@@ -206,10 +206,15 @@ QString Capture::serializeCameraArrangement() {
         for (auto c = 0; c < m_num_cols; ++c) {
             auto index = r * m_num_cols + c;
             Camera* camera = index < m_ui_cameras.size() ? m_ui_cameras[index] : nullptr;
-            if (camera)
+            int rotation = index < m_ui_camera_rotations.size() ? m_ui_camera_rotations[index] : 0;
+            if (camera) {
                 out << camera->name();
-            else
+                if (rotation != 0)
+                    out << ":" << rotation;
+            }
+            else {
                 out << "0";
+            }
             if (c < m_num_cols - 1)
                 out << "\t";
         }
@@ -221,6 +226,7 @@ QString Capture::serializeCameraArrangement() {
 void Capture::loadCameraArrangement(QString arrangement) {
     if (!arrangement.isEmpty()) {
         QList<Camera*> ui_cameras;
+        QList<int> ui_camera_rotations;
         int num_rows, num_cols;
         QTextStream in(&arrangement);
         // TODO: catch error when something during reading goes wrong
@@ -233,13 +239,22 @@ void Capture::loadCameraArrangement(QString arrangement) {
             QString line = in.readLine().trimmed();
             if (line.isEmpty())
                 continue;
-            QStringList cameraNames = line.split(QRegExp("\\s+"));
+            QStringList cameraSpecifiers = line.split(QRegExp("\\s+"));
             int numCamerasAdded = 0;
-            for (auto& cameraName : cameraNames) {
+            for (auto& cameraSpecifier : cameraSpecifiers) {
                 if (numCamerasAdded >= num_cols) {
                     std::cout << "warning: row " << r + 1 << " of the camera arrangement contains too many entries" << std::endl;
                     break;
                 }
+                QRegExp const specifierRegexp("^(\\w+)(?::(-?\\d+))?$");
+                if (!specifierRegexp.exactMatch(cameraSpecifier)) {
+                    emit alert("Invalid camera specifer '" + cameraSpecifier + "'. Resetting camera arrangement.");
+                    resetCameraArrangement();
+                    return;
+                }
+                QStringList const matches = specifierRegexp.capturedTexts();
+                QString const cameraName = matches[1];
+                int const rotation = matches.length() > 2 ? matches[2].toInt() : 0;
                 Camera *camera = findCameraByName(cameraName);
                 if (!camera && cameraName != "0") {
                     emit alert("Could not load camera arrangement. Camera '" + cameraName + "' is missing.\nResetting camera arrangement.");
@@ -247,11 +262,14 @@ void Capture::loadCameraArrangement(QString arrangement) {
                     return;
                 }
                 ui_cameras.push_back(camera);
+                ui_camera_rotations.push_back(rotation);
                 ++numCamerasAdded;
             }
             // Was the line shorter than num_cols? Fill it up with nullptrs
-            for (auto i = numCamerasAdded; i < num_cols; ++i)
+            for (auto i = numCamerasAdded; i < num_cols; ++i) {
                 ui_cameras.push_back(nullptr);
+                ui_camera_rotations.push_back(0);
+            }
         }
         m_num_rows = num_rows;
         m_num_cols = num_cols;
@@ -259,7 +277,10 @@ void Capture::loadCameraArrangement(QString arrangement) {
         emit numColsChanged(num_cols);
         m_ui_cameras.clear();
         m_ui_cameras.append(ui_cameras);
+        m_ui_camera_rotations.clear();
+        m_ui_camera_rotations.append(ui_camera_rotations);
         emit uiCamerasChanged();
+        emit uiCameraRotationsChanged();
         // m_ui_cameras = ui_cameras;
     }
     else {
@@ -276,7 +297,11 @@ void Capture::loadCameraArrangement(QString arrangement) {
 void Capture::resetCameraArrangement() {
     m_ui_cameras.clear();
     m_ui_cameras.append(m_cameras);
+    m_ui_camera_rotations.clear();
+    for (auto _ : m_ui_cameras)
+        m_ui_camera_rotations.append(0);
     emit uiCamerasChanged();
+    emit uiCameraRotationsChanged();
     // m_ui_cameras = m_cameras;
     recalculateGridSize();
     QSettings settings;
@@ -304,4 +329,8 @@ void Capture::cameraNameChanged(const QString& /*name*/) {
 
 bool Capture::allConfigured() const {
     return m_all_camera_names_known;
+}
+
+QList<int> Capture::uiCameraRotations() {
+    return m_ui_camera_rotations;
 }
