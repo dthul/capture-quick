@@ -15,6 +15,12 @@ ApplicationWindow {
     height: 1080
     visible: true
 
+    property variant arrangementWindow;
+
+    ArrangementDesigner {
+        id: arrangementDesigner
+    }
+
     function extractPathFromURL(url) {
         // More or less hacky way to extract the absolute path from
         // the URL that the FileDialog returns.
@@ -58,24 +64,33 @@ ApplicationWindow {
         Menu {
             title: qsTr("&File")
             MenuItem {
+                text: qsTr("E&xit")
+                onTriggered: Qt.quit()
+            }
+        }
+
+        Menu {
+            title: qsTr("&Camera Arrangement")
+            MenuItem {
                 shortcut: "Ctrl+O"
-                text: qsTr("L&oad Camera Arrangement")
+                text: qsTr("L&oad")
                 onTriggered: cameraArrangementLoadFileDialog.open()
             }
             MenuItem {
                 shortcut: "Ctrl+S"
-                text: qsTr("S&ave Camera Arrangement")
+                text: qsTr("S&ave")
                 onTriggered: cameraArrangementWriteFileDialog.open()
+            }
+            MenuSeparator { }
+            MenuItem {
+                shortcut: "Ctrl+N"
+                text: qsTr("&New")
+                onTriggered: arrangementDesigner.visible = true
             }
             MenuItem {
                 shortcut: "Ctrl+R"
-                text: qsTr("&Reset Camera Arrangement")
+                text: qsTr("&Reset")
                 onTriggered: capture.resetCameraArrangement()
-            }
-
-            MenuItem {
-                text: qsTr("E&xit")
-                onTriggered: Qt.quit()
             }
         }
     }
