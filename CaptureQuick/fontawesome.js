@@ -12,7 +12,7 @@ var Icon = {
     Th                  : "\uf00a",
     ThList              : "\uf00b",
     Ok                  : "\uf00c",
-    Remove              : "\uf00d",
+    Times               : "\uf00d",
     ZoomIn              : "\uf00e",
     ZoomOut             : "\uf010",
     Off                 : "\uf011",

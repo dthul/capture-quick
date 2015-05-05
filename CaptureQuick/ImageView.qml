@@ -278,13 +278,20 @@ Item {
                         id: apertureComboBox
                         model: imageView.model.apertureChoices
                         property int selectedIndex: imageView.model.apertureIndex
+                        property bool synced: false
                         onSelectedIndexChanged: {
                             if (currentIndex != selectedIndex)
                                 currentIndex = selectedIndex
+                            synced = true
                         }
                         onCurrentIndexChanged: {
-                            if (currentIndex != selectedIndex)
+                            if (currentIndex != selectedIndex) {
                                 imageView.model.apertureIndex = currentIndex
+                                synced = false
+                            }
+                            else {
+                                synced = true
+                            }
                         }
 
                         // The following intuitive property binding does not work so the
@@ -295,7 +302,7 @@ Item {
                     BusySpinner {
                         Layout.maximumHeight: apertureComboBox.height
                         Layout.maximumWidth: apertureComboBox.height
-                        running: apertureComboBox.currentIndex != apertureComboBox.selectedIndex
+                        running: !apertureComboBox.synced
                     }
                 }
                 Text {
@@ -310,19 +317,26 @@ Item {
                         id: shutterComboBox
                         model: imageView.model.shutterChoices
                         property int selectedIndex: imageView.model.shutterIndex
+                        property bool synced: false
                         onSelectedIndexChanged: {
                             if (currentIndex != selectedIndex)
                                 currentIndex = selectedIndex
+                            synced = true
                         }
                         onCurrentIndexChanged: {
-                            if (currentIndex != selectedIndex)
+                            if (currentIndex != selectedIndex) {
                                 imageView.model.shutterIndex = currentIndex
+                                synced = false
+                            }
+                            else {
+                                synced = true
+                            }
                         }
                     }
                     BusySpinner {
                         Layout.maximumHeight: shutterComboBox.height
                         Layout.maximumWidth: shutterComboBox.height
-                        running: shutterComboBox.currentIndex != shutterComboBox.selectedIndex
+                        running: !shutterComboBox.synced
                     }
                 }
                 Text {
@@ -337,19 +351,26 @@ Item {
                         id: isoComboBox
                         model: imageView.model.isoChoices
                         property int selectedIndex: imageView.model.isoIndex
+                        property bool synced: false
                         onSelectedIndexChanged: {
                             if (currentIndex != selectedIndex)
                                 currentIndex = selectedIndex
+                            synced = true
                         }
                         onCurrentIndexChanged: {
-                            if (currentIndex != selectedIndex)
+                            if (currentIndex != selectedIndex) {
                                 imageView.model.isoIndex = currentIndex
+                                synced = false
+                            }
+                            else {
+                                synced = true
+                            }
                         }
                     }
                     BusySpinner {
                         Layout.maximumHeight: isoComboBox.height
                         Layout.maximumWidth: isoComboBox.height
-                        running: isoComboBox.currentIndex != isoComboBox.selectedIndex
+                        running: !isoComboBox.synced
                     }
                 }
                 Button {
