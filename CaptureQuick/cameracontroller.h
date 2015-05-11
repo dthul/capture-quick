@@ -11,7 +11,6 @@
 class CameraController : public QObject
 {
     Q_OBJECT
-    typedef std::vector<char> JpegBuffer;
 public:
     CameraController(gp::Camera *camera, QObject *parent = 0);
     ~CameraController();

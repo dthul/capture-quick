@@ -115,7 +115,7 @@ void CameraController::capturePreview() {
     if (!m_previewRunning)
         return;
     try {
-        JpegBuffer jpeg = m_camera->preview();
+        auto jpeg = m_camera->preview();
         if (m_previewRunning) {
             // Convert the buffer containing jpeg data to a QImage
             QImage previewImage(QImage::fromData(reinterpret_cast<const uchar*>(jpeg.data()), jpeg.size()));
@@ -138,8 +138,9 @@ void CameraController::trigger() {
 
 void CameraController::readImage(const QFileInfo& fileInfo) {
     try {
-        JpegBuffer jpeg = m_camera->read_image(fileInfo.path().toStdString(), fileInfo.fileName().toStdString());
-        Image image(jpeg);
+        std::cout << fileInfo.path().toStdString() << fileInfo.fileName().toStdString() << std::endl;
+        std::vector<char> image_data = m_camera->read_image(fileInfo.path().toStdString(), fileInfo.fileName().toStdString());
+        Image image(image_data);
         emit newImage(image);
     } catch (gp::Exception& ex) {
         std::cout << "cam " /* TODO << index*/ << ": " << ex.what() << std::endl;

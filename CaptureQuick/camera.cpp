@@ -308,15 +308,25 @@ void Camera::c_setPreviewImage(const QImage preview) {
 void Camera::c_setImage(const Image& image) {
     if (m_state != CAMERA_CAPTURE)
         return;
-    m_latest_image = image;
-    m_latest_image_time = QDateTime::currentDateTimeUtc();
-    emit imageUrlChanged(imageUrl());
+    if (image.is_raw()) {
+        m_latest_raw_image = image;
+        m_latest_raw_image_time = QDateTime::currentDateTimeUtc();
+        emit rawImageUrlChanged(rawImageUrl());
+    }
+    else {
+        m_latest_image = image;
+        m_latest_image_time = QDateTime::currentDateTimeUtc();
+        emit imageUrlChanged(imageUrl());
+    }
 }
 
 void Camera::clearLatestImage() {
     m_latest_image = Image();
     m_latest_image_time = QDateTime::currentDateTimeUtc();
+    m_latest_raw_image = Image();
+    m_latest_raw_image_time = QDateTime::currentDateTimeUtc();
     emit imageUrlChanged(imageUrl());
+    emit rawImageUrlChanged(rawImageUrl());
 }
 
 QString Camera::previewUrl() const {
@@ -327,12 +337,20 @@ QString Camera::imageUrl() const {
     return QString::number(m_id) + QString("/image/") + m_latest_image_time.toString("dd.MM.yyyy-hh:mm:ss.zzz");
 }
 
+QString Camera::rawImageUrl() const {
+    return QString::number(m_id) + QString("/raw_image/") + m_latest_raw_image_time.toString("dd.MM.yyyy-hh:mm:ss.zzz");
+}
+
 const QImage& Camera::latestPreview() const {
     return m_latest_preview;
 }
 
 const QImage& Camera::latestImage() const {
     return m_latest_image.toQImage();
+}
+
+const QImage& Camera::latestRawImage() const {
+    return m_latest_raw_image.toQImage();
 }
 
 Camera::CameraState Camera::state() const {
@@ -342,3 +360,8 @@ Camera::CameraState Camera::state() const {
 void Camera::saveImage(const QString& fileName) {
     m_latest_image.save(fileName.toStdString());
 }
+
+void Camera::saveRawImage(const QString& fileName) {
+    m_latest_raw_image.save(fileName.toStdString());
+}
+

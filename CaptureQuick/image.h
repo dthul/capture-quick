@@ -23,10 +23,13 @@ public:
     char const* data() const;
     std::size_t size() const;
     void save(const std::string& fileName);
+    static bool is_jpeg(std::vector<char>const& image_data);
+    bool is_raw() const;
 private:
     std::vector<char> m_buffer;
     QImage m_qimage;
     std::string m_file_path;
+    bool m_raw;
 };
 
 Q_DECLARE_METATYPE(Image)

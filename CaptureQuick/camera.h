@@ -33,6 +33,7 @@ private:
 
     Q_PROPERTY(QString previewUrl READ previewUrl NOTIFY previewUrlChanged)
     Q_PROPERTY(QString imageUrl READ imageUrl NOTIFY imageUrlChanged)
+    Q_PROPERTY(QString rawImageUrl READ rawImageUrl NOTIFY rawImageUrlChanged)
 
     // Define some properties so that they are accessible from QML
     Q_PROPERTY(QString aperture READ aperture NOTIFY apertureChanged)
@@ -79,6 +80,9 @@ public:
     QString imageUrl() const;
     const QImage& latestImage() const;
 
+    QString rawImageUrl() const;
+    const QImage& latestRawImage() const;
+
     CameraState state() const;
     void setState(const CameraState state);
 
@@ -101,6 +105,7 @@ signals:
 
     void previewUrlChanged(const QString& newPreviewUrl);
     void imageUrlChanged(const QString& newImageUrl);
+    void rawImageUrlChanged(const QString& newRawImageUrl);
 
     void stateChanged(const CameraState state);
 
@@ -108,6 +113,7 @@ public slots:
     void trigger();
     void clearLatestImage();
     void saveImage(const QString& fileName);
+    void saveRawImage(const QString& fileName);
     void readConfig();
 private slots:
     // These slots are invoked from the controller after
@@ -150,6 +156,9 @@ private:
 
     Image m_latest_image;
     QDateTime m_latest_image_time;
+
+    Image m_latest_raw_image;
+    QDateTime m_latest_raw_image_time;
 
     static std::atomic_uint s_id;
     CameraState m_state;

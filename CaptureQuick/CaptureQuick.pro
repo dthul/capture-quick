@@ -12,7 +12,8 @@ SOURCES += main.cpp \
     cameraeventlistener.cpp \
     image.cpp \
     persist.cpp \
-    triggerbox.cpp
+    triggerbox.cpp \
+    util.cpp
 
 RESOURCES += qml.qrc \
     images.qrc \
@@ -32,7 +33,12 @@ HEADERS += \
     cameraeventlistener.h \
     image.h \
     persist.h \
-    triggerbox.h
+    triggerbox.h \
+    util.h
+
+macx: {
+ICON = icon.icns
+}
 
 # For MacPorts
 macx: {
@@ -58,7 +64,3 @@ else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../gphotogr
 else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../gphotogrid/build/release/gp.lib
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../gphotogrid/build/debug/gp.lib
 else:unix: PRE_TARGETDEPS += $$PWD/../gphotogrid/build/libgp.a
-
-macx: {
-    DEFINES += MACOS
-}

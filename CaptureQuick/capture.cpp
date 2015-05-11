@@ -16,7 +16,9 @@ Capture::Capture(QQmlApplicationEngine* const qmlEngine, QObject *parent) :
     m_num_captured(0),
     m_triggerBox(new TriggerBox()),
     m_triggerBoxThread(new QThread()),
-    m_all_camera_names_known(false)
+    m_all_camera_names_known(false),
+    m_num_rows(1),
+    m_num_cols(1)
 {
     QSettings settings;
     const QString defaultCaptureLocation =
