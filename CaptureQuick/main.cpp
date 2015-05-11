@@ -1,6 +1,8 @@
-#ifdef MACOS
+#ifdef __APPLE__
 #include <cstdlib>
 #endif
+#include <fstream>
+#include <iostream>
 
 #include <QApplication>
 #include <QFileInfo>
@@ -12,10 +14,15 @@
 #include "capture.h"
 #include "image.h"
 #include "liveimageprovider.h"
+#include "util.h"
 
 int main(int argc, char *argv[])
 {
-#ifdef MACOS
+    const QFileInfo executable_path(QString::fromStdString(util::executable_path()));
+    const std::string lib_dir = executable_path.absolutePath().toStdString();
+    util::setenv("IOLIBS", lib_dir);
+    util::setenv("CAMLIBS", lib_dir);
+#ifdef __APPLE__
     system("killall PTPCamera");
 #endif
     QApplication app(argc, argv);

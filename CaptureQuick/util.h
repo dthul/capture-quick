@@ -1,12 +1,11 @@
-#ifndef UTIL_H
-#define UTIL_H
+#pragma once
 
+#include <string>
 
-class util
+namespace util
 {
-public:
-    util();
-    ~util();
-};
 
-#endif // UTIL_H
+std::string executable_path();
+void setenv(std::string name, std::string value);
+
+}

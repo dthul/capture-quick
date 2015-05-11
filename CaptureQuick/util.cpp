@@ -1,12 +1,57 @@
 #include "util.h"
 
-util::util()
+#include <stdexcept>
+
+#ifdef _WIN32
+    //define something for Windows (32-bit and 64-bit, this part is common)
+    #include <stdlib.h>
+    #ifdef _WIN64
+        //define something for Windows (64-bit only)
+    #endif
+#elif __APPLE__
+    #include <mach-o/dyld.h>
+    #include <stdlib.h>
+#elif __linux
+    // linux
+#elif __unix // all unices not caught above
+    // Unix
+#elif __posix
+    // POSIX
+#endif
+
+namespace util
 {
 
+std::string executable_path() {
+#ifdef __APPLE__
+    uint32_t buf_size = 0;
+    if (_NSGetExecutablePath(nullptr, &buf_size) != -1)
+        throw new std::runtime_error("Could not query the buffer size needed to query the executable path");
+    char buf[buf_size];
+    if (_NSGetExecutablePath(buf, &buf_size) != 0)
+        throw new std::runtime_error("Could not query the executable path");
+    char* const real_path_c = realpath(buf, nullptr);
+    if (!real_path_c)
+        throw new std::runtime_error("Could not canonicalize the executable path");
+    const std::string real_path(real_path_c);
+    free(real_path_c);
+    return real_path;
+#else
+#error "util::executable_path() is not implemented for this operating system"
+#endif
 }
 
-util::~util()
-{
+void setenv(std::string name, std::string value) {
+#if defined(__APPLE__) || defined(__unix)
+    if (::setenv(name.c_str(), value.c_str(), 1) != 0)
+        throw new std::runtime_error("Could not set environment variable");
+#elif defined(_WIN32)
+    if (_putenv_s(name.c_str(), value.c_str()) != 0)
+        throw new std::runtime_error("Could not set environment variable");
+#else
+#error "util::setenv() is not implemented for this operating system"
+#endif
+}
 
 }
 
