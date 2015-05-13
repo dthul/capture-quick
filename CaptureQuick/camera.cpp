@@ -7,8 +7,7 @@ std::atomic_uint Camera::s_id{0};
 Camera::Camera(QObject *parent) :
     QObject(parent),
     m_id(s_id++),
-    m_latest_preview(":/testchart.png"),
-    m_latest_preview_time(QDateTime::currentDateTimeUtc()),
+    m_latest_preview(new Image(":/testchart.png")),
     m_state(CAMERA_NONE)
 {
 
@@ -22,8 +21,7 @@ Camera::Camera(gp::Camera* const gp_camera, QObject *parent) :
     m_controller(new CameraController(gp_camera)),
     m_eventListenerThread(new QThread()),
     m_eventListener(new CameraEventListener(gp_camera)),
-    m_latest_preview(":/testchart.png"),
-    m_latest_preview_time(QDateTime::currentDateTimeUtc()),
+    m_latest_preview(new Image(":/testchart.png")),
     m_state(CAMERA_INIT)
 {
     // Move the camera controller to it's own thread and connect the signals
@@ -119,9 +117,8 @@ void Camera::c_previewStarted() {
 }
 
 void Camera::c_previewStopped() {
-    m_latest_preview = QImage(":/testchart.png");
-    m_latest_preview_time = QDateTime::currentDateTimeUtc();
-    emit previewUrlChanged(previewUrl());
+    m_latest_preview = QSharedPointer<Image>(new Image(":/testchart.png"));
+    emit previewChanged(m_latest_preview.data());
     if (m_state != CAMERA_SHUTDOWN) {
         m_state = CAMERA_TRANSITIONING;
         emit stateChanged(m_state);
@@ -297,60 +294,43 @@ void Camera::stopPreview() {
         m_controller->stopPreview();
 }
 
-void Camera::c_setPreviewImage(const QImage preview) {
+void Camera::c_setPreviewImage(QSharedPointer<Image> preview) {
     if (m_state != CAMERA_PREVIEW)
         return;
     m_latest_preview = preview;
-    m_latest_preview_time = QDateTime::currentDateTimeUtc();
-    emit previewUrlChanged(previewUrl());
+    emit previewChanged(m_latest_preview.data());
 }
 
-void Camera::c_setImage(const Image& image) {
+void Camera::c_setImage(QSharedPointer<Image> image) {
     if (m_state != CAMERA_CAPTURE)
         return;
-    if (image.is_raw()) {
+    if (image->is_raw()) {
         m_latest_raw_image = image;
-        m_latest_raw_image_time = QDateTime::currentDateTimeUtc();
-        emit rawImageUrlChanged(rawImageUrl());
+        emit rawImageChanged(m_latest_raw_image.data());
     }
     else {
         m_latest_image = image;
-        m_latest_image_time = QDateTime::currentDateTimeUtc();
-        emit imageUrlChanged(imageUrl());
+        emit imageChanged(m_latest_image.data());
     }
 }
 
 void Camera::clearLatestImage() {
-    m_latest_image = Image();
-    m_latest_image_time = QDateTime::currentDateTimeUtc();
-    m_latest_raw_image = Image();
-    m_latest_raw_image_time = QDateTime::currentDateTimeUtc();
-    emit imageUrlChanged(imageUrl());
-    emit rawImageUrlChanged(rawImageUrl());
+    m_latest_image = QSharedPointer<Image>(new Image());
+    m_latest_raw_image = QSharedPointer<Image>(new Image());
+    emit imageChanged(m_latest_image.data());
+    emit rawImageChanged(m_latest_raw_image.data());
 }
 
-QString Camera::previewUrl() const {
-    return QString::number(m_id) + QString("/preview/") + m_latest_preview_time.toString("dd.MM.yyyy-hh:mm:ss.zzz");
+Image* Camera::preview() {
+    return m_latest_preview.data();
 }
 
-QString Camera::imageUrl() const {
-    return QString::number(m_id) + QString("/image/") + m_latest_image_time.toString("dd.MM.yyyy-hh:mm:ss.zzz");
+Image* Camera::image() {
+    return m_latest_image.data();
 }
 
-QString Camera::rawImageUrl() const {
-    return QString::number(m_id) + QString("/raw_image/") + m_latest_raw_image_time.toString("dd.MM.yyyy-hh:mm:ss.zzz");
-}
-
-const QImage& Camera::latestPreview() const {
-    return m_latest_preview;
-}
-
-const QImage& Camera::latestImage() const {
-    return m_latest_image.toQImage();
-}
-
-const QImage& Camera::latestRawImage() const {
-    return m_latest_raw_image.toQImage();
+Image* Camera::rawImage() {
+    return m_latest_raw_image.data();
 }
 
 Camera::CameraState Camera::state() const {
@@ -358,10 +338,10 @@ Camera::CameraState Camera::state() const {
 }
 
 void Camera::saveImage(const QString& fileName) {
-    m_latest_image.save(fileName.toStdString());
+    m_latest_image->save(fileName.toStdString());
 }
 
 void Camera::saveRawImage(const QString& fileName) {
-    m_latest_raw_image.save(fileName.toStdString());
+    m_latest_raw_image->save(fileName.toStdString());
 }
 

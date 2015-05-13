@@ -117,8 +117,7 @@ void CameraController::capturePreview() {
     try {
         auto jpeg = m_camera->preview();
         if (m_previewRunning) {
-            // Convert the buffer containing jpeg data to a QImage
-            QImage previewImage(QImage::fromData(reinterpret_cast<const uchar*>(jpeg.data()), jpeg.size()));
+            QSharedPointer<Image> previewImage(new Image(jpeg));
             emit newPreviewImage(previewImage);
         }
     } catch (gp::Exception& ex) {
@@ -140,7 +139,7 @@ void CameraController::readImage(const QFileInfo& fileInfo) {
     try {
         std::cout << fileInfo.path().toStdString() << fileInfo.fileName().toStdString() << std::endl;
         std::vector<char> image_data = m_camera->read_image(fileInfo.path().toStdString(), fileInfo.fileName().toStdString());
-        Image image(image_data);
+        QSharedPointer<Image> image(new Image(image_data));
         emit newImage(image);
     } catch (gp::Exception& ex) {
         std::cout << "cam " /* TODO << index*/ << ": " << ex.what() << std::endl;

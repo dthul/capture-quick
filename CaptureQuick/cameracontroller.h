@@ -3,6 +3,7 @@
 #include <QFileInfo>
 #include <QImage>
 #include <QObject>
+#include <QSharedPointer>
 #include <QStringList>
 
 #include "image.h"
@@ -26,8 +27,8 @@ signals:
     void shutterChoicesChanged(const QStringList& newShutterChoices);
     void isoChoicesChanged(const QStringList& newIsoChoices);
 
-    void newPreviewImage(QImage preview);
-    void newImage(Image image);
+    void newPreviewImage(QSharedPointer<Image> preview);
+    void newImage(QSharedPointer<Image> image);
 
     void previewStarted();
     void previewStopped();

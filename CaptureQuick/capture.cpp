@@ -16,9 +16,9 @@ Capture::Capture(QQmlApplicationEngine* const qmlEngine, QObject *parent) :
     m_num_captured(0),
     m_triggerBox(new TriggerBox()),
     m_triggerBoxThread(new QThread()),
-    m_all_camera_names_known(false),
     m_num_rows(1),
-    m_num_cols(1)
+    m_num_cols(1),
+    m_all_camera_names_known(false)
 {
     QSettings settings;
     const QString defaultCaptureLocation =
@@ -30,7 +30,7 @@ Capture::Capture(QQmlApplicationEngine* const qmlEngine, QObject *parent) :
     for (auto& gp_camera : m_gp_cameras) {
         Camera* camera = new Camera(&gp_camera);
         m_cameras.append(camera);
-        connect(camera, &Camera::imageUrlChanged, this, &Capture::newImageCaptured);
+        connect(camera, &Camera::imageChanged, this, &Capture::newImageCaptured);
         connect(camera, &Camera::nameChanged, this, &Capture::cameraNameChanged);
         camera->readConfig();
     }
@@ -41,7 +41,7 @@ Capture::Capture(QQmlApplicationEngine* const qmlEngine, QObject *parent) :
     m_triggerBoxThread->start();
 
     // will be freed by Qt
-    LiveImageProvider *liveImgProvider = new LiveImageProvider(&m_cameras);
+    LiveImageProvider *liveImgProvider = LiveImageProvider::getInstance();
     m_qml_engine->addImageProvider("live", liveImgProvider);
 
     m_qml_engine->rootContext()->setContextProperty("capture", this);
@@ -89,7 +89,7 @@ void Capture::saveCaptureToDisk() {
 void Capture::newImageCaptured() {
     int num_captured = 0;
     for (auto camera : m_cameras) {
-        if (!camera->latestImage().isNull())
+        if (!camera->image()->toQImage().isNull())
             ++num_captured;
     }
     m_num_captured = num_captured;

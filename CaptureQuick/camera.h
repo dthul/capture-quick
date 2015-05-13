@@ -5,6 +5,7 @@
 #include <QDateTime>
 #include <QImage>
 #include <QObject>
+#include <QSharedPointer>
 #include <QString>
 #include <QStringList>
 #include <QThread>
@@ -31,9 +32,9 @@ private:
 
     Q_PROPERTY(QString name READ name NOTIFY nameChanged)
 
-    Q_PROPERTY(QString previewUrl READ previewUrl NOTIFY previewUrlChanged)
-    Q_PROPERTY(QString imageUrl READ imageUrl NOTIFY imageUrlChanged)
-    Q_PROPERTY(QString rawImageUrl READ rawImageUrl NOTIFY rawImageUrlChanged)
+    Q_PROPERTY(Image* preview READ preview NOTIFY previewChanged)
+    Q_PROPERTY(Image* image READ image NOTIFY imageChanged)
+    Q_PROPERTY(Image* rawImage READ rawImage NOTIFY rawImageChanged)
 
     // Define some properties so that they are accessible from QML
     Q_PROPERTY(QString aperture READ aperture NOTIFY apertureChanged)
@@ -74,6 +75,7 @@ public:
     void startPreview();
     void stopPreview();
 
+    /*
     QString previewUrl() const;
     const QImage& latestPreview() const;
 
@@ -82,6 +84,10 @@ public:
 
     QString rawImageUrl() const;
     const QImage& latestRawImage() const;
+    */
+    Image* preview();
+    Image* image();
+    Image* rawImage();
 
     CameraState state() const;
     void setState(const CameraState state);
@@ -103,9 +109,9 @@ signals:
     void shutterChoicesChanged(const QStringList& newShutterChoices);
     void isoChoicesChanged(const QStringList& newIsoChoices);
 
-    void previewUrlChanged(const QString& newPreviewUrl);
-    void imageUrlChanged(const QString& newImageUrl);
-    void rawImageUrlChanged(const QString& newRawImageUrl);
+    void previewChanged(Image* newPreview);
+    void imageChanged(Image* newImage);
+    void rawImageChanged(Image* newRawImage);
 
     void stateChanged(const CameraState state);
 
@@ -120,8 +126,8 @@ private slots:
     // a configuration has been requested by this class
     // and answered by the (hardware) camera.
     void c_setName(const QString& name);
-    void c_setPreviewImage(const QImage preview);
-    void c_setImage(const Image& image);
+    void c_setPreviewImage(QSharedPointer<Image> preview);
+    void c_setImage(QSharedPointer<Image> image);
     void c_setApertureChoices(const QList<QString>& newApertureChoices);
     void c_setShutterChoices(const QList<QString>& newShutterChoices);
     void c_setIsoChoices(const QList<QString>& newIsoChoices);
@@ -151,14 +157,11 @@ private:
     QThread *m_eventListenerThread = nullptr;
     CameraEventListener *m_eventListener = nullptr;
 
-    QImage m_latest_preview;
-    QDateTime m_latest_preview_time;
+    QSharedPointer<Image> m_latest_preview;
 
-    Image m_latest_image;
-    QDateTime m_latest_image_time;
+    QSharedPointer<Image> m_latest_image;
 
-    Image m_latest_raw_image;
-    QDateTime m_latest_raw_image_time;
+    QSharedPointer<Image> m_latest_raw_image;
 
     static std::atomic_uint s_id;
     CameraState m_state;

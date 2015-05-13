@@ -12,7 +12,7 @@ void Persist::saveImagesToDisk(QList<Camera*> const& cameras, QString prefix) {
     auto destinationFolders = getDestinationFolders(cameras);
     for (int i = 0; i < cameras.length(); ++i) {
         auto camera = cameras[i];
-        if (!camera->latestImage().isNull()) {
+        if (!camera->image()->toQImage().isNull()) {
             // Make sure that the destination directory exists
             if (!QDir::root().mkpath(destinationFolders[i]))
                 // TODO: throw error instead

@@ -1,5 +1,6 @@
 #include "util.h"
 
+#include <atomic>
 #include <stdexcept>
 
 #ifdef _WIN32
@@ -51,6 +52,12 @@ void setenv(std::string name, std::string value) {
 #else
 #error "util::setenv() is not implemented for this operating system"
 #endif
+}
+
+std::atomic<uint64_t> gId(0);
+
+uint64_t getId() {
+    return std::atomic_fetch_add(&gId, 1ull);
 }
 
 }

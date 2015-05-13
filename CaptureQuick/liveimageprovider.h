@@ -2,18 +2,26 @@
 
 #include <QImage>
 #include <QList>
+#include <QMap>
 #include <QQuickImageProvider>
 
-#include "camera.h"
+#include "image.h"
 
 class LiveImageProvider : public QQuickImageProvider
 {
-public:
-    LiveImageProvider(QList<Camera*>* cameras);
-    ~LiveImageProvider();
-
-    QImage requestImage(const QString &id, QSize *size, const QSize &requestedSize);
+    typedef QMap<uint64_t, const class Image *> ImageMap;
 private:
-    QList<Camera*>* m_cameras;
+    LiveImageProvider();
+public:
+    static LiveImageProvider* getInstance();
+    ~LiveImageProvider();
+    QImage requestImage(const QString &id, QSize *size, const QSize &requestedSize);
+
+    void registerImage(const class Image *const image);
+    void unregisterImage(const class Image *const image);
+    QString urlFor(const class Image *const image) const;
+private:
     QImage m_default_image;
+    static LiveImageProvider* liveImageProvider;
+    ImageMap m_imageMap;
 };

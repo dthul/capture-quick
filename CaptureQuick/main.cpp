@@ -26,8 +26,8 @@ int main(int argc, char *argv[])
     camlib_dir.cd("../Frameworks/libgphoto2/2.5.7/");
     std::cout << "IOLIBS" << iolib_dir.absolutePath().toStdString() << std::endl;
     std::cout << "CAMLIBS" << camlib_dir.absolutePath().toStdString() << std::endl;
-    util::setenv("IOLIBS", iolib_dir.absolutePath().toStdString());
-    util::setenv("CAMLIBS", camlib_dir.absolutePath().toStdString());
+    //util::setenv("IOLIBS", iolib_dir.absolutePath().toStdString());
+    //util::setenv("CAMLIBS", camlib_dir.absolutePath().toStdString());
     system("killall PTPCamera");
 #else
 #warning "No libgphoto2 environment variables specified for this operating system. If you want to deploy the application stand-alone you probably have to set them."
@@ -41,8 +41,10 @@ int main(int argc, char *argv[])
 
     // Makes the Camera class's Enum available to QML
     qmlRegisterUncreatableType<Camera>("CaptureQuick", 0, 1, "Camera", "Cameras can't be instantiated from QML");
+    qmlRegisterUncreatableType<Image>("CaptureQuick", 0, 1, "CQImage", "Images can't be instantiated from QML");
+    // Register meta types to make them usable in signal / slot connections
     qRegisterMetaType<QFileInfo>("QFileInfo");
-    qRegisterMetaType<Image>("Image");
+    qRegisterMetaType<QSharedPointer<Image>>("QSharedPointer<Image>");
 
     QQmlApplicationEngine engine;
 

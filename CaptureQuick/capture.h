@@ -14,7 +14,7 @@
 class Capture : public QObject
 {
     Q_OBJECT
-private:
+
     Q_PROPERTY(int numCaptured READ numCaptured NOTIFY numCapturedChanged)
     Q_PROPERTY(QString captureRoot READ captureRoot WRITE setCaptureRoot NOTIFY captureRootChanged)
     Q_PROPERTY(bool autoSave READ autoSave WRITE setAutoSave NOTIFY autoSaveChanged)

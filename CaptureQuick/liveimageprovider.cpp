@@ -4,9 +4,10 @@
 
 #include <QRegExp>
 
-LiveImageProvider::LiveImageProvider(QList<Camera*>* cameras) :
+LiveImageProvider* LiveImageProvider::liveImageProvider = nullptr;
+
+LiveImageProvider::LiveImageProvider() :
     QQuickImageProvider(QQmlImageProviderBase::Image),
-    m_cameras(cameras),
     m_default_image(QImage(":/testchart.png"))
 {
 
@@ -17,29 +18,32 @@ LiveImageProvider::~LiveImageProvider()
 
 }
 
+LiveImageProvider* LiveImageProvider::getInstance() {
+    if (!liveImageProvider)
+        liveImageProvider = new LiveImageProvider();
+    return liveImageProvider;
+}
+
+void LiveImageProvider::registerImage(const class Image *const image) {
+    m_imageMap.insert(image->id(), image);
+}
+
+void LiveImageProvider::unregisterImage(const class Image *const image) {
+    m_imageMap.remove(image->id());
+}
+
+QString LiveImageProvider::urlFor(const class Image *const image) const {
+    return QString::number(image->id());
+}
+
 QImage LiveImageProvider::requestImage(const QString &url, QSize *size, const QSize &/*requestedSize*/) {
-    const QRegExp url_regex("^([^/]+)/(preview|image)/([^/]+)$");
-    *size = m_default_image.size();
-    if(!url_regex.exactMatch(url))
-        return m_default_image;
-    const QString id_str = url_regex.capturedTexts()[1];
-    const QString type = url_regex.capturedTexts()[2];
-    bool ok;
-    const uint id = id_str.toUInt(&ok);
-    if (!ok)
-        return m_default_image;
-    for (Camera* cam : *m_cameras) {
-        if (cam->m_id == id) {
-            QImage image;
-            if (type == "preview")
-                image = cam->latestPreview();
-            else
-                image = cam->latestImage();
-            if (image.isNull())
-                break;
-            *size = image.size();
-            return image;
-        }
+    const uint64_t imageId = url.toULongLong();
+    ImageMap::const_iterator it = m_imageMap.find(imageId);
+    if (it != m_imageMap.end()) {
+        QImage image = it.value()->toQImage();
+        *size = image.size();
+        return image;
     }
+    *size = m_default_image.size();
     return m_default_image;
 }
