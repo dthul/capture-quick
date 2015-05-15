@@ -5,45 +5,52 @@
 #include <QSettings>
 #include <QStandardPaths>
 
-void Persist::saveImagesToDisk(QList<Camera*> const& cameras, QString prefix) {
-    const QDateTime now(QDateTime::currentDateTimeUtc());
-    if (prefix.isNull())
-        prefix = QString::number(now.toMSecsSinceEpoch());
-    auto destinationFolders = getDestinationFolders(cameras);
-    for (int i = 0; i < cameras.length(); ++i) {
-        auto camera = cameras[i];
-        if (!camera->image()->toQImage().isNull()) {
-            // Make sure that the destination directory exists
-            if (!QDir::root().mkpath(destinationFolders[i]))
-                // TODO: throw error instead
-                continue;
-            const QDir destinationFolder(destinationFolders[i]);
-            // Use the current time as the filename
-            const QString fileName = prefix + ".jpg";
-            if (destinationFolder.exists(fileName))
-                // TODO: throw error instead
-                continue;
-            // Concatenate the folder and the file name
-            const QString filePath = destinationFolder.filePath(fileName);
-            camera->saveImage(filePath);
-        }
-    }
+#include "camera.h"
+
+Persist* Persist::persist = nullptr;
+
+QString Persist::FileName::path() const {
+    return dir + (dir.endsWith(QDir::separator()) ? QString("") : QDir::separator()) + name;
 }
 
-QList<QString> Persist::getDestinationFolders(QList<Camera*> const& cameras) {
-    QList<QString> destinationFolders;
+Persist::Persist() :
+    m_time(QDateTime::currentMSecsSinceEpoch()) {}
+
+Persist* Persist::getInstance() {
+    if (!persist)
+        persist = new Persist();
+    return persist;
+}
+
+void Persist::next() {
+    m_time = QDateTime::currentMSecsSinceEpoch();
+}
+
+void Persist::save(Image* const image) {
+    if (image->saved() || !image->camera() || image->empty())
+        return;
+    const FileName fileName = fileNameFor(image);
+    // Make sure that the destination directory exists
+    if (!QDir::root().mkpath(fileName.dir))
+        // TODO: throw error instead
+        return;
+    const QDir destinationFolder(fileName.dir);
+    // Use the current time as the filename
+    if (destinationFolder.exists(fileName.name))
+        // TODO: throw error instead
+        return;
+    image->save(fileName.path());
+}
+
+Persist::FileName Persist::fileNameFor(Image* const image) {
     QSettings settings;
     const QString defaultCaptureLocation =
             QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
     QString captureRoot = QDir(settings.value("capture/root_path", defaultCaptureLocation).toString()).absolutePath();
     // There is no function in Qt to concatenate paths (wtf!) so we hackishly do it ourselves
     const bool addSeparator = !defaultCaptureLocation.endsWith(QDir::separator());
-
-    for (auto camera : cameras) {
-        const QString cameraName = camera->name();
-        const QString destinationFolder = captureRoot + (addSeparator ? QDir::separator() : QString("")) + cameraName + QDir::separator();
-        destinationFolders.append(destinationFolder);
-    }
-
-    return destinationFolders;
+    FileName fileName;
+    fileName.dir = captureRoot + (addSeparator ? QDir::separator() : QString("")) + QString::number(m_time) + QDir::separator();
+    fileName.name = image->camera()->name() + (image->is_raw() ? ".cr2" : ".jpg");
+    return fileName;
 }

@@ -2,12 +2,13 @@
 
 #include <iostream>
 
-std::atomic_uint Camera::s_id{0};
+#include "cameracontroller.h"
 
 Camera::Camera(QObject *parent) :
     QObject(parent),
-    m_id(s_id++),
     m_latest_preview(new Image(":/testchart.png")),
+    m_latest_image(new Image()),
+    m_latest_raw_image(new Image()),
     m_state(CAMERA_NONE)
 {
 
@@ -15,15 +16,16 @@ Camera::Camera(QObject *parent) :
 
 Camera::Camera(gp::Camera* const gp_camera, QObject *parent) :
     QObject(parent),
-    m_id(s_id++),
     m_camera(gp_camera),
     m_controllerThread(new QThread()),
-    m_controller(new CameraController(gp_camera)),
     m_eventListenerThread(new QThread()),
     m_eventListener(new CameraEventListener(gp_camera)),
     m_latest_preview(new Image(":/testchart.png")),
+    m_latest_image(new Image()),
+    m_latest_raw_image(new Image()),
     m_state(CAMERA_INIT)
 {
+    m_controller = new CameraController(this);
     // Move the camera controller to it's own thread and connect the signals
     m_controller->moveToThread(m_controllerThread);
     connect(m_controller, &CameraController::nameChanged, this, &Camera::c_setName);
@@ -73,23 +75,27 @@ Camera::~Camera()
     if (m_controllerThread) {
         // Wait at most 5 seconds for thread to stop
         if (!m_controllerThread->wait(5 * 1000))
-            std::cout << "~Camera(" << m_id << ") timed out" << std::endl;
+            std::cout << "~Camera(" << m_name.toStdString() << ") timed out" << std::endl;
         else {
-            std::cout << "~Camera(" << m_id << ") joined" << std::endl;
+            std::cout << "~Camera(" << m_name.toStdString() << ") joined" << std::endl;
         }
     }
     if (m_eventListenerThread) {
         // Wait at most 5 seconds for thread to stop
         if (!m_eventListenerThread->wait(5 * 1000))
-            std::cout << "~Camera(" << m_id << ") timed out" << std::endl;
+            std::cout << "~Camera(" << m_name.toStdString() << ") timed out" << std::endl;
         else {
-            std::cout << "~Camera(" << m_id << ") joined" << std::endl;
+            std::cout << "~Camera(" << m_name.toStdString() << ") joined" << std::endl;
         }
     }
     delete m_controller;
     delete m_controllerThread;
     delete m_eventListener;
     delete m_eventListenerThread;
+}
+
+gp::Camera* Camera::gp_camera() {
+    return m_camera;
 }
 
 void Camera::readConfig() {
@@ -152,7 +158,7 @@ void Camera::setState(const CameraState state) {
         stopPreview();
     }
     else if (state != m_state) {
-        std::cout << "Camera " << m_id << ": can't set state to " << state << std::endl;
+        std::cout << "Camera " << m_name.toStdString() << ": can't set state to " << state << std::endl;
     }
 }
 
@@ -336,12 +342,3 @@ Image* Camera::rawImage() {
 Camera::CameraState Camera::state() const {
     return m_state;
 }
-
-void Camera::saveImage(const QString& fileName) {
-    m_latest_image->save(fileName.toStdString());
-}
-
-void Camera::saveRawImage(const QString& fileName) {
-    m_latest_raw_image->save(fileName.toStdString());
-}
-

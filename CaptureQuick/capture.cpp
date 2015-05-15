@@ -31,6 +31,7 @@ Capture::Capture(QQmlApplicationEngine* const qmlEngine, QObject *parent) :
         Camera* camera = new Camera(&gp_camera);
         m_cameras.append(camera);
         connect(camera, &Camera::imageChanged, this, &Capture::newImageCaptured);
+        connect(camera, &Camera::rawImageChanged, this, &Capture::newImageCaptured);
         connect(camera, &Camera::nameChanged, this, &Capture::cameraNameChanged);
         camera->readConfig();
     }
@@ -76,17 +77,20 @@ int Capture::numCaptured() const {
 }
 
 void Capture::newCapture() {
-    m_capture_time = QDateTime::currentDateTimeUtc();
+    Persist::getInstance()->next();
     for (auto camera : m_cameras)
         camera->clearLatestImage();
 }
 
 void Capture::saveCaptureToDisk() {
     std::cout << "Saving capture to disk" << std::endl;
-    Persist::saveImagesToDisk(m_cameras, QString::number(m_capture_time.toMSecsSinceEpoch()));
+    for (Camera * camera : m_cameras) {
+        camera->image()->save();
+        camera->rawImage()->save();
+    }
 }
 
-void Capture::newImageCaptured() {
+void Capture::newImageCaptured(Image* image) {
     int num_captured = 0;
     for (auto camera : m_cameras) {
         if (!camera->image()->toQImage().isNull())
@@ -94,8 +98,8 @@ void Capture::newImageCaptured() {
     }
     m_num_captured = num_captured;
     emit numCapturedChanged(m_num_captured);
-    if (m_auto_save && m_num_captured == m_cameras.length())
-        saveCaptureToDisk();
+    if (m_auto_save)
+        image->save();
 }
 
 QString Capture::captureRoot() const {

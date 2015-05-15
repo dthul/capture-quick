@@ -2,12 +2,14 @@
 
 #include <iostream>
 
+#include <QApplication>
 #include <QImage>
 #include <QMetaObject>
 
-CameraController::CameraController(gp::Camera *camera, QObject *parent) :
+CameraController::CameraController(Camera *camera, QObject *parent) :
     QObject(parent),
     m_camera(camera),
+    m_gp_camera(camera->gp_camera()),
     m_previewRunning(false)
 {
 
@@ -37,9 +39,9 @@ void CameraController::readConfig() {
     int iso = -1;
     QStringList isoChoices;
 
-    if (m_camera != nullptr) {
+    if (m_gp_camera != nullptr) {
         // Read the new settings from the camera
-        const gp::Widget configWidget = m_camera->config();
+        const gp::Widget configWidget = m_gp_camera->config();
         std::string name = configWidget["artist"].get<std::string>();
         gp::Aperture apertureConfig = configWidget["aperture"].get<gp::Aperture>();
         gp::ShutterSpeed shutterConfig = configWidget["shutterspeed"].get<gp::ShutterSpeed>();
@@ -72,9 +74,9 @@ void CameraController::readConfig() {
 void CameraController::readAperture() {
     int aperture = -1;
 
-    if (m_camera != nullptr) {
+    if (m_gp_camera != nullptr) {
         // Read the new settings from the camera
-        const gp::Widget configWidget = m_camera->config();
+        const gp::Widget configWidget = m_gp_camera->config();
         gp::Aperture apertureConfig = configWidget["aperture"].get<gp::Aperture>();
         aperture = apertureConfig.index();
     }
@@ -86,9 +88,9 @@ void CameraController::readAperture() {
 void CameraController::readShutter() {
     int shutter = -1;
 
-    if (m_camera != nullptr) {
+    if (m_gp_camera != nullptr) {
         // Read the new settings from the camera
-        const gp::Widget configWidget = m_camera->config();
+        const gp::Widget configWidget = m_gp_camera->config();
         gp::ShutterSpeed shutterConfig = configWidget["shutterspeed"].get<gp::ShutterSpeed>();
         shutter = shutterConfig.index();
     }
@@ -100,9 +102,9 @@ void CameraController::readShutter() {
 void CameraController::readIso() {
     int iso = -1;
 
-    if (m_camera != nullptr) {
+    if (m_gp_camera != nullptr) {
         // Read the new settings from the camera
-        const gp::Widget configWidget = m_camera->config();
+        const gp::Widget configWidget = m_gp_camera->config();
         gp::Iso isoConfig = configWidget["iso"].get<gp::Iso>();
         iso = isoConfig.index();
     }
@@ -115,9 +117,10 @@ void CameraController::capturePreview() {
     if (!m_previewRunning)
         return;
     try {
-        auto jpeg = m_camera->preview();
+        auto jpeg = m_gp_camera->preview();
         if (m_previewRunning) {
-            QSharedPointer<Image> previewImage(new Image(jpeg));
+            QSharedPointer<Image> previewImage(new Image(jpeg, m_camera));
+            previewImage.data()->moveToThread(QApplication::instance()->thread());
             emit newPreviewImage(previewImage);
         }
     } catch (gp::Exception& ex) {
@@ -129,7 +132,7 @@ void CameraController::capturePreview() {
 
 void CameraController::trigger() {
     try {
-        m_camera->trigger();
+        m_gp_camera->trigger();
     } catch (gp::Exception& ex) {
         std::cout << "cam " /* TODO << index*/ << ": " << ex.what() << std::endl;
     }
@@ -138,8 +141,9 @@ void CameraController::trigger() {
 void CameraController::readImage(const QFileInfo& fileInfo) {
     try {
         std::cout << fileInfo.path().toStdString() << fileInfo.fileName().toStdString() << std::endl;
-        std::vector<char> image_data = m_camera->read_image(fileInfo.path().toStdString(), fileInfo.fileName().toStdString());
-        QSharedPointer<Image> image(new Image(image_data));
+        std::vector<char> image_data = m_gp_camera->read_image(fileInfo.path().toStdString(), fileInfo.fileName().toStdString());
+        QSharedPointer<Image> image(new Image(image_data, m_camera));
+        image.data()->moveToThread(QApplication::instance()->thread());
         emit newImage(image);
     } catch (gp::Exception& ex) {
         std::cout << "cam " /* TODO << index*/ << ": " << ex.what() << std::endl;
@@ -148,7 +152,7 @@ void CameraController::readImage(const QFileInfo& fileInfo) {
 
 template <class Obj>
 void CameraController::setRadioConfig(int value) {
-    auto cfg = m_camera->config()[Obj::gpname];
+    auto cfg = m_gp_camera->config()[Obj::gpname];
     auto radio = cfg.template get<Obj>();
 
     if (value >= 0 && value < radio.size()) {
@@ -195,6 +199,6 @@ void CameraController::setIso(const int index) {
 }
 
 void CameraController::reset() {
-    m_camera->reset();
+    m_gp_camera->reset();
     emit resetDone();
 }

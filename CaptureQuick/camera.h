@@ -10,10 +10,11 @@
 #include <QStringList>
 #include <QThread>
 
-#include "cameracontroller.h"
 #include "cameraeventlistener.h"
 #include "image.h"
 #include "gputil.h"
+
+class CameraController;
 
 class Camera : public QObject
 {
@@ -92,7 +93,7 @@ public:
     CameraState state() const;
     void setState(const CameraState state);
 
-    const uint m_id;
+    gp::Camera* gp_camera();
 
 signals:
     void nameChanged(const QString& newName);
@@ -118,8 +119,6 @@ signals:
 public slots:
     void trigger();
     void clearLatestImage();
-    void saveImage(const QString& fileName);
-    void saveRawImage(const QString& fileName);
     void readConfig();
 private slots:
     // These slots are invoked from the controller after
@@ -163,6 +162,5 @@ private:
 
     QSharedPointer<Image> m_latest_raw_image;
 
-    static std::atomic_uint s_id;
     CameraState m_state;
 };

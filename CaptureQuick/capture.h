@@ -1,6 +1,5 @@
 #pragma once
 
-#include <QDateTime>
 #include <QDir>
 #include <QObject>
 #include <QQmlApplicationEngine>
@@ -60,7 +59,7 @@ public slots:
     void writeCameraArrangementToFile(const QString& fileName);
     void resetCameraArrangement();
 private slots:
-    void newImageCaptured();
+    void newImageCaptured(Image* image);
     void cameraNameChanged(const QString& name);
 private:
     void recalculateGridSize();
@@ -75,7 +74,6 @@ private:
     gp::Context gpcontext;
     std::vector<gp::Camera> m_gp_cameras;
     int m_num_captured;
-    QDateTime m_capture_time;
     QString m_capture_root;
     bool m_auto_save;
     TriggerBox *m_triggerBox;

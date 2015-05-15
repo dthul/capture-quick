@@ -6,6 +6,7 @@
 #include <QSharedPointer>
 #include <QStringList>
 
+#include "camera.h"
 #include "image.h"
 #include "gputil.h"
 
@@ -13,7 +14,7 @@ class CameraController : public QObject
 {
     Q_OBJECT
 public:
-    CameraController(gp::Camera *camera, QObject *parent = 0);
+    CameraController(Camera *camera, QObject *parent = 0);
     ~CameraController();
 
 signals:
@@ -53,7 +54,8 @@ public slots:
 private slots:
     void capturePreview();
 private:
-    gp::Camera *m_camera;
+    Camera *m_camera;
+    gp::Camera *m_gp_camera;
     volatile bool m_previewRunning;
     template <class Obj>
     void setRadioConfig(int value);

@@ -160,6 +160,33 @@ Item {
             mipmap: true
             rotation: capture.uiCameraRotations[index]
         }
+
+        MouseArea {
+            id: jpegTag
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 5
+            anchors.left: parent.left
+            anchors.leftMargin: 5
+            width: jpegRect.width
+            height: jpegRect.height
+            enabled: !model.image.empty
+            opacity: model.image.empty ? 0 : 1
+            cursorShape: model.image.saved ? Qt.PointingHandCursor : Qt.ArrowCursor
+            Rectangle {
+                id: jpegRect
+                width: jpegLabel.width + 7
+                height: jpegLabel.height + 3
+                radius: 2
+                color: "white"
+                Label {
+                    id: jpegLabel
+                    anchors.centerIn: parent
+                    text: "JPEG"
+                    color: model.image.saved ? "blue" : "gray"
+                }
+            }
+            onClicked: model.image.show()
+        }
     }
 
     // This is the image that is actually in

@@ -1,7 +1,11 @@
 #include "util.h"
 
 #include <atomic>
+#include <iostream>
 #include <stdexcept>
+
+#include <QProcess>
+#include <QStringList>
 
 #ifdef _WIN32
     //define something for Windows (32-bit and 64-bit, this part is common)
@@ -52,6 +56,30 @@ void setenv(std::string name, std::string value) {
 #else
 #error "util::setenv() is not implemented for this operating system"
 #endif
+}
+
+// see: http://lynxline.com/show-in-finder-show-in-explorer/
+void showFile(const QString &filePath) {
+#if defined(__APPLE__)
+    QStringList args;
+    args << "-e";
+    args << "tell application \"Finder\"";
+    args << "-e";
+    args << "activate";
+    args << "-e";
+    args << "select POSIX file \""+filePath+"\"";
+    args << "-e";
+    args << "end tell";
+    QProcess::startDetached("osascript", args);
+#elif defined(_WIN32)
+    QStringList args;
+    args << "/select," << QDir::toNativeSeparators(filePath);
+    QProcess::startDetached("explorer", args);
+#else
+#warning "util::showFile() not implemented for this operating system"
+    std::cout << "util::showFile() not implemented for this operating system" << std::endl;
+#endif
+
 }
 
 std::atomic<uint64_t> gId(0);

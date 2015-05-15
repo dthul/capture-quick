@@ -1,14 +1,25 @@
 #pragma once
 
+#include <QDateTime>
 #include <QList>
 #include <QString>
 
-#include "camera.h"
+#include "image.h"
 
 class Persist
 {
-    Persist() {}
+    Persist();
 public:
-    static void saveImagesToDisk(QList<Camera*> const& cameras, QString prefix);
-    static QList<QString> getDestinationFolders(QList<Camera*> const& cameras);
+    static Persist* getInstance();
+    void save(Image* const image);
+    void next();
+private:
+    struct FileName {
+        QString dir;
+        QString name;
+        QString path() const;
+    };
+    FileName fileNameFor(Image* const image);
+    static Persist* persist;
+    qint64 m_time;
 };

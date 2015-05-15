@@ -4,23 +4,27 @@
 #include <iostream>
 
 #include "liveimageprovider.h"
+#include "persist.h"
 #include "util.h"
 
 Image::Image(QObject *parent) :
     QObject(parent),
+    m_camera(nullptr),
     m_id(util::getId()) {
     registerMe();
 }
 
 Image::Image(const QString& url, QObject *parent) :
     QObject(parent),
+    m_camera(nullptr),
     m_id(util::getId()),
     m_qimage(url) {
     registerMe();
 }
 
-Image::Image(const std::vector<char> &buffer, QObject *parent) :
+Image::Image(const std::vector<char> &buffer, Camera* const camera, QObject *parent) :
     QObject(parent),
+    m_camera(camera),
     m_buffer(buffer),
     m_id(util::getId())
 {
@@ -37,6 +41,10 @@ Image::Image(const std::vector<char> &buffer, QObject *parent) :
 
 Image::~Image() {
     unregisterMe();
+}
+
+Camera* Image::camera() const {
+    return m_camera;
 }
 
 void Image::registerMe() {
@@ -69,19 +77,28 @@ std::size_t Image::size() const {
 }
 
 bool Image::saved() const {
-    return !m_file_path.empty();
+    return !m_file_path.isEmpty();
 }
 
-void Image::save(const std::string& fileName) {
+bool Image::empty() const {
+    return m_buffer.size() == 0;
+}
+
+void Image::save() {
+    Persist::getInstance()->save(this);
+}
+
+void Image::save(const QString& fileName) {
     // TODO: error handling
     if (m_buffer.size() == 0 || fileName == m_file_path)
         return;
-    std::cout << "Saving as " << fileName << std::endl;
-    std::ofstream out(fileName, std::ofstream::binary);
+    std::cout << "Saving as " << fileName.toStdString() << std::endl;
+    std::ofstream out(fileName.toStdString(), std::ofstream::binary);
     out.write(m_buffer.data(), m_buffer.size());
     out.close();
     m_file_path = fileName;
     emit savedChanged(saved());
+    emit filePathChanged(m_file_path);
 }
 
 uint64_t Image::id() const {
@@ -90,4 +107,14 @@ uint64_t Image::id() const {
 
 QString Image::url() const {
     return LiveImageProvider::getInstance()->urlFor(this);
+}
+
+QString Image::filePath() const {
+    return m_file_path;
+}
+
+void Image::show() const {
+    if (m_file_path.isEmpty())
+        return;
+    util::showFile(m_file_path);
 }
