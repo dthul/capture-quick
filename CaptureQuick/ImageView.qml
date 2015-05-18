@@ -162,7 +162,7 @@ Item {
         }
 
         Column {
-            width: max(jpegTag.width, rawTag.width)
+            width: Math.max(jpegTag.width, rawTag.width)
             height: rawTag.height + jpegTag.height + 3
             anchors.bottom: parent.bottom
             anchors.bottomMargin: 5

@@ -15,7 +15,7 @@ MouseArea {
         width: label.width + 7
         height: label.height + 3
         radius: 2
-        // hue: 232°
+        // color hue: 232°
         color: image.saved ? "#143054" : "#2C2C2C"
 
         Label {
