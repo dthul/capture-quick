@@ -209,6 +209,34 @@ ApplicationWindow {
                         }
                     }
                 }
+                RowLayout {
+                    CheckBox {
+                        id: saveJpegCheckbox
+                        text: "Save JPEG"
+
+                        Layout.fillWidth: true
+
+                        checked: capture.saveJpeg
+                        onCheckedChanged: {
+                            if (checked != capture.saveJpeg) {
+                                capture.saveJpeg = checked;
+                            }
+                        }
+                    }
+                    CheckBox {
+                        id: saveRawCheckbox
+                        text: "Save RAW"
+
+                        Layout.fillWidth: true
+
+                        checked: capture.saveRaw
+                        onCheckedChanged: {
+                            if (checked != capture.saveRaw) {
+                                capture.saveRaw = checked;
+                            }
+                        }
+                    }
+                }
                 CheckBox {
                     id: autoSaveCheckbox
                     text: "Auto Save"
@@ -262,7 +290,7 @@ ApplicationWindow {
         }
 
         Tooltip {
-            text: "Saves the captured images as\nsoon as every camera triggered"
+            text: "Saves the captured images as\nsoon as they have been downloaded"
             opacity: autoSaveCheckbox.hovered ? 0.8 : 0
             // Hacky hack hack
             x: autoSaveCheckbox.mapToItem(mainFrame, 0 * columnLayout1.x * autoSaveCheckbox.x, 0).x + autoSaveCheckbox.width / 2 - width / 2

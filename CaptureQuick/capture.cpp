@@ -20,11 +20,6 @@ Capture::Capture(QQmlApplicationEngine* const qmlEngine, QObject *parent) :
     m_num_cols(1),
     m_all_camera_names_known(false)
 {
-    QSettings settings;
-    const QString defaultCaptureLocation =
-            QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
-    m_capture_root = settings.value("capture/root_path", defaultCaptureLocation).toString();
-    m_auto_save = settings.value("capture/auto_save", false).toBool();
     m_gp_cameras = gpcontext.all_cameras();
     std::cout << "Found " << m_gp_cameras.size() << " cameras" << std::endl;
     for (auto& gp_camera : m_gp_cameras) {
@@ -37,7 +32,6 @@ Capture::Capture(QQmlApplicationEngine* const qmlEngine, QObject *parent) :
     }
 
     m_triggerBox->moveToThread(m_triggerBoxThread);
-    std::cout << "triggerBoxThread: " << std::hex << m_triggerBoxThread << std::endl;
     connect(m_triggerBoxThread, &QThread::started, m_triggerBox, &TriggerBox::init);
     m_triggerBoxThread->start();
 
@@ -84,9 +78,13 @@ void Capture::newCapture() {
 
 void Capture::saveCaptureToDisk() {
     std::cout << "Saving capture to disk" << std::endl;
+    const bool save_jpeg = saveJpeg();
+    const bool save_raw = saveRaw();
     for (Camera * camera : m_cameras) {
-        camera->image()->save();
-        camera->rawImage()->save();
+        if (save_jpeg)
+            camera->image()->save();
+        if (save_raw)
+            camera->rawImage()->save();
     }
 }
 
@@ -98,30 +96,56 @@ void Capture::newImageCaptured(Image* image) {
     }
     m_num_captured = num_captured;
     emit numCapturedChanged(m_num_captured);
-    if (m_auto_save)
-        image->save();
+    if (autoSave()) {
+        if ((!image->is_raw() && saveJpeg()) || (image->is_raw() && saveRaw()))
+            image->save();
+    }
 }
 
 QString Capture::captureRoot() const {
-    return m_capture_root;
+    QSettings settings;
+    const QString defaultCaptureLocation =
+            QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
+    return settings.value("capture/root_path", defaultCaptureLocation).toString();
 }
 
 void Capture::setCaptureRoot(const QString& newCaptureRoot) {
     QSettings settings;
-    m_capture_root = newCaptureRoot;
-    settings.setValue("capture/root_path", m_capture_root);
-    emit captureRootChanged(m_capture_root);
+    settings.setValue("capture/root_path", newCaptureRoot);
+    emit captureRootChanged(newCaptureRoot);
 }
 
 bool Capture::autoSave() const {
-    return m_auto_save;
+    QSettings settings;
+    return settings.value("capture/auto_save", false).toBool();
 }
 
 void Capture::setAutoSave(bool autoSave) {
     QSettings settings;
-    m_auto_save = autoSave;
-    settings.setValue("capture/auto_save", m_auto_save);
-    emit autoSaveChanged(m_auto_save);
+    settings.setValue("capture/auto_save", autoSave);
+    emit autoSaveChanged(autoSave);
+}
+
+bool Capture::saveJpeg() const {
+    QSettings settings;
+    return settings.value("capture/save_jpeg", true).toBool();
+}
+
+void Capture::setSaveJpeg(bool saveJpeg) {
+    QSettings settings;
+    settings.setValue("capture/save_jpeg", saveJpeg);
+    emit saveJpegChanged(saveJpeg);
+}
+
+bool Capture::saveRaw() const {
+    QSettings settings;
+    return settings.value("capture/save_raw", false).toBool();
+}
+
+void Capture::setSaveRaw(bool saveRaw) {
+    QSettings settings;
+    settings.setValue("capture/save_raw", saveRaw);
+    emit saveRawChanged(saveRaw);
 }
 
 void Capture::focusAll() {

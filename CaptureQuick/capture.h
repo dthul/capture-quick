@@ -17,6 +17,8 @@ class Capture : public QObject
     Q_PROPERTY(int numCaptured READ numCaptured NOTIFY numCapturedChanged)
     Q_PROPERTY(QString captureRoot READ captureRoot WRITE setCaptureRoot NOTIFY captureRootChanged)
     Q_PROPERTY(bool autoSave READ autoSave WRITE setAutoSave NOTIFY autoSaveChanged)
+    Q_PROPERTY(bool saveJpeg READ saveJpeg WRITE setSaveJpeg NOTIFY saveJpegChanged)
+    Q_PROPERTY(bool saveRaw READ saveRaw WRITE setSaveRaw NOTIFY saveRawChanged)
     Q_PROPERTY(QQmlListProperty<Camera> allCameras READ allCameras CONSTANT)
     Q_PROPERTY(QQmlListProperty<Camera> uiCameras READ uiCameras NOTIFY uiCamerasChanged)
     Q_PROPERTY(QList<int> uiCameraRotations READ uiCameraRotations NOTIFY uiCameraRotationsChanged)
@@ -31,7 +33,11 @@ public:
     QString captureRoot() const;
     void setCaptureRoot(const QString& newCaptureRoot);
     bool autoSave() const;
+    bool saveJpeg() const;
+    bool saveRaw() const;
     void setAutoSave(bool autoSave);
+    void setSaveJpeg(bool saveJpeg);
+    void setSaveRaw(bool saveRaw);
     QQmlListProperty<Camera> allCameras();
     QQmlListProperty<Camera> uiCameras();
     QList<int> uiCameraRotations();
@@ -44,6 +50,8 @@ signals:
     void numCapturedChanged(const int numCaptured);
     void captureRootChanged(const QString& captureRoot);
     void autoSaveChanged(bool autoSave);
+    void saveJpegChanged(bool saveJpeg);
+    void saveRawChanged(bool saveRaw);
     void numColsChanged(const int numCols);
     void numRowsChanged(const int numRows);
     void alert(QString message);
@@ -74,8 +82,6 @@ private:
     gp::Context gpcontext;
     std::vector<gp::Camera> m_gp_cameras;
     int m_num_captured;
-    QString m_capture_root;
-    bool m_auto_save;
     TriggerBox *m_triggerBox;
     QThread *m_triggerBoxThread;
     int m_num_rows;

@@ -5,6 +5,7 @@
 #include <QApplication>
 #include <QImage>
 #include <QMetaObject>
+#include <QSettings>
 
 CameraController::CameraController(Camera *camera, QObject *parent) :
     QObject(parent),
@@ -141,12 +142,26 @@ void CameraController::trigger() {
 void CameraController::readImage(const QFileInfo& fileInfo) {
     try {
         std::cout << fileInfo.path().toStdString() << fileInfo.fileName().toStdString() << std::endl;
+        if (fileInfo.fileName().endsWith(".cr2")) {
+            // I don't know if this is the best place for this test
+            QSettings settings;
+            const bool save_raw = settings.value("capture/save_raw", false).toBool();
+            if (!save_raw) {
+                // Don't waste bandwidth by not downloading the raw image in the first place.
+                // Just return an empty image.
+                const std::vector<char> buffer;
+                QSharedPointer<Image> image(new Image(buffer, m_camera));
+                image.data()->moveToThread(QApplication::instance()->thread());
+                emit newImage(image);
+                return;
+            }
+        }
         std::vector<char> image_data = m_gp_camera->read_image(fileInfo.path().toStdString(), fileInfo.fileName().toStdString());
         QSharedPointer<Image> image(new Image(image_data, m_camera));
         image.data()->moveToThread(QApplication::instance()->thread());
         emit newImage(image);
     } catch (gp::Exception& ex) {
-        std::cout << "cam " /* TODO << index*/ << ": " << ex.what() << std::endl;
+        std::cout << "cam " << m_camera->name().toStdString() << ": " << ex.what() << std::endl;
     }
 }
 

@@ -10,7 +10,9 @@
 Image::Image(QObject *parent) :
     QObject(parent),
     m_camera(nullptr),
-    m_id(util::getId()) {
+    m_id(util::getId()),
+    m_qimage(":/testchart.png"),
+    m_raw(false) {
     registerMe();
 }
 
@@ -18,7 +20,8 @@ Image::Image(const QString& url, QObject *parent) :
     QObject(parent),
     m_camera(nullptr),
     m_id(util::getId()),
-    m_qimage(url) {
+    m_qimage(url),
+    m_raw(false) {
     registerMe();
 }
 

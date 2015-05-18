@@ -199,7 +199,7 @@ Item {
         anchors.centerIn: parent
         // The "live" image provider has been registered from
         // the C++ code
-        source: "image://live/" + ((model.state === Camera.CAMERA_PREVIEW) ? model.preview.url : model.image.url)
+        source: "image://live/" + ((model.state === Camera.CAMERA_PREVIEW) ? model.preview.url : ((!model.image.empty) ? model.image.url : model.rawImage.url))
         visible: false
     }
 
