@@ -6,5 +6,6 @@
         <file>Tooltip.qml</file>
         <file>EmptyImageView.qml</file>
         <file>ArrangementDesigner.qml</file>
+        <file>ImageFormatTag.qml</file>
     </qresource>
 </RCC>

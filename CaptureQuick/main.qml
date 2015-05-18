@@ -212,7 +212,7 @@ ApplicationWindow {
                 RowLayout {
                     CheckBox {
                         id: saveJpegCheckbox
-                        text: "Save JPEG"
+                        text: "JPEG"
 
                         Layout.fillWidth: true
 
@@ -225,7 +225,7 @@ ApplicationWindow {
                     }
                     CheckBox {
                         id: saveRawCheckbox
-                        text: "Save RAW"
+                        text: "RAW"
 
                         Layout.fillWidth: true
 

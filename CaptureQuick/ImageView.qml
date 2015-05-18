@@ -161,31 +161,25 @@ Item {
             rotation: capture.uiCameraRotations[index]
         }
 
-        MouseArea {
-            id: jpegTag
+        Column {
+            width: max(jpegTag.width, rawTag.width)
+            height: rawTag.height + jpegTag.height + 3
             anchors.bottom: parent.bottom
             anchors.bottomMargin: 5
             anchors.left: parent.left
             anchors.leftMargin: 5
-            width: jpegRect.width
-            height: jpegRect.height
-            enabled: !model.image.empty
-            opacity: model.image.empty ? 0 : 1
-            cursorShape: model.image.saved ? Qt.PointingHandCursor : Qt.ArrowCursor
-            Rectangle {
-                id: jpegRect
-                width: jpegLabel.width + 7
-                height: jpegLabel.height + 3
-                radius: 2
-                color: "white"
-                Label {
-                    id: jpegLabel
-                    anchors.centerIn: parent
-                    text: "JPEG"
-                    color: model.image.saved ? "blue" : "gray"
-                }
+            ImageFormatTag {
+                id: rawTag
+                text: "RAW"
+                image: model.rawImage
+                anchors.top: parent.top
             }
-            onClicked: model.image.show()
+            ImageFormatTag {
+                id: jpegTag
+                text: "JPEG"
+                image: model.image
+                anchors.bottom: parent.bottom
+            }
         }
     }
 
