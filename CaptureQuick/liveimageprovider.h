@@ -3,6 +3,7 @@
 #include <QImage>
 #include <QList>
 #include <QMap>
+#include <QMutex>
 #include <QQuickImageProvider>
 
 #include "image.h"
@@ -24,4 +25,6 @@ private:
     QImage m_default_image;
     static LiveImageProvider* liveImageProvider;
     ImageMap m_imageMap;
+    mutable QMutex m_mutex;
+    static QMutex s_mutex;
 };

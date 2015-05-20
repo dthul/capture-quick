@@ -2,12 +2,14 @@
 
 #include <QDateTime>
 #include <QDir>
+#include <QMutexLocker>
 #include <QSettings>
 #include <QStandardPaths>
 
 #include "camera.h"
 
 Persist* Persist::persist = nullptr;
+QMutex Persist::s_mutex;
 
 QString Persist::FileName::path() const {
     return dir + (dir.endsWith(QDir::separator()) ? QString("") : QDir::separator()) + name;
@@ -17,16 +19,19 @@ Persist::Persist() :
     m_time(QDateTime::currentMSecsSinceEpoch()) {}
 
 Persist* Persist::getInstance() {
+    QMutexLocker locker(&s_mutex);
     if (!persist)
         persist = new Persist();
     return persist;
 }
 
 void Persist::next() {
+    QMutexLocker locker(&m_mutex);
     m_time = QDateTime::currentMSecsSinceEpoch();
 }
 
 void Persist::save(Image* const image) {
+    QMutexLocker locker(&m_mutex);
     if (image->saved() || !image->camera() || image->empty())
         return;
     const FileName fileName = fileNameFor(image);
