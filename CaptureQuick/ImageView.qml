@@ -162,23 +162,18 @@ Item {
         }
 
         Column {
-            width: Math.max(jpegTag.width, rawTag.width)
-            height: rawTag.height + jpegTag.height + 3
+            spacing: 3
             anchors.bottom: parent.bottom
             anchors.bottomMargin: 5
             anchors.left: parent.left
             anchors.leftMargin: 5
             ImageFormatTag {
-                id: rawTag
                 text: "RAW"
                 image: model.rawImage
-                anchors.top: parent.top
             }
             ImageFormatTag {
-                id: jpegTag
                 text: "JPEG"
                 image: model.image
-                anchors.bottom: parent.bottom
             }
         }
     }
