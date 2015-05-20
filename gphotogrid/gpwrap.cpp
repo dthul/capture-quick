@@ -366,6 +366,66 @@ void Camera::save_file(const std::string& folder, const std::string& name,
 	close(fd);
 }
 
+void Camera::for_each_file(const FileFunc& func) {
+    std::lock_guard<std::mutex> g(mutex);
+    int ret;
+    CameraStorageInformation *storage_info;
+    int len;
+    if ((ret = gp_camera_get_storageinfo(camera, &storage_info, &len, ctx->context)) < GP_OK) {
+        throw Exception("gp_camera_get_storageinfo", ret);
+    }
+    for (int i = 0; i < len; ++i) {
+        CameraStorageInformation& info = storage_info[i];
+        if (info.fields & GP_STORAGEINFO_BASE) {
+            for_each_file_in_folder(func, info.basedir);
+        }
+    }
+    free(storage_info);
+}
+
+void Camera::for_each_file_in_folder(const FileFunc& func, const std::string& folder) {
+    int ret;
+    CameraList *files;
+    gp_list_new(&files);
+    if ((ret = gp_camera_folder_list_files(camera, folder.c_str(), files, ctx->context)) < GP_OK) {
+        throw Exception("gp_camera_folder_list_files", ret);
+    }
+    for (int i = 0; i < gp_list_count(files); ++i) {
+        std::string file_name;
+        {
+            const char *c_file_name;
+            gp_list_get_name(files, i, &c_file_name);
+            file_name = c_file_name;
+        }
+        CameraFileInfo file_info;
+        if ((ret = gp_camera_file_get_info(camera, folder.c_str(), file_name.c_str(), &file_info, ctx->context)) < GP_OK) {
+            throw Exception("gp_camera_file_get_info", ret);
+        }
+        FileInfo info;
+        info.folder = folder;
+        info.name = file_name;
+        if (file_info.file.fields & GP_FILE_INFO_MTIME) {
+            info.fields |= FILE_TIME;
+            info.time = file_info.file.mtime;
+        }
+        func(info);
+    }
+    gp_list_free(files);
+
+    CameraList *folders;
+    gp_list_new(&folders);
+    if ((ret = gp_camera_folder_list_folders(camera, folder.c_str(), folders, ctx->context)) < GP_OK) {
+        throw Exception("gp_camera_folder_list_folders", ret);
+    }
+    for (int i = 0; i < gp_list_count(folders); ++i) {
+        const char *child_name;
+        gp_list_get_name(folders, i, &child_name);
+        std::string absolute_path = folder + "/" + child_name;
+        for_each_file_in_folder(func, absolute_path);
+    }
+    gp_list_free(folders);
+}
+
 // WIDGET
 // ======
 

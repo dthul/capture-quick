@@ -3,6 +3,7 @@
 // http://libgphoto2.sourcearchive.com/documentation/2.4.10.1-2ubuntu5/gphoto2-widget_8h_ac2407563a7f8c22de8df8d5009f0e4e1.html1
 // http://www.gphoto.org/doc/api/gphoto2-camera_8h.html
 //
+#include <functional>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -106,11 +107,28 @@ public:
 	// widgets are able to set configs
 	friend class Widget;
 
+    void print_filesystem();
+    enum FileFields {
+        FILE_TIME
+    };
+
+    struct FileInfo {
+        std::string folder;
+        std::string name;
+        uint32_t fields = 0;
+        time_t time;
+    };
+
+    typedef std::function<void(const FileInfo&)> FileFunc;
+    void for_each_file(const FileFunc& func);
+
 private:
 	Camera(Context& ctx);
 	Camera(const char *model, const char *port, Context& ctx);
 
 	void set_config(_CameraWidget* rootwindow);
+
+    void for_each_file_in_folder(const FileFunc& func, const std::string& folder);
 
 	_Camera* camera;
 	Context* ctx; // pointer and not a ref because move assignment
