@@ -34,7 +34,7 @@ void CameraEventListener::waitForEvent() {
         return;
 
     try {
-        gp::CameraEvent ev = m_camera->wait_event(1);
+        gp::CameraEvent ev = m_camera->wait_event(20);
         handleEvent(ev);
     } catch (gp::Exception& e) {
         std::cout << "CameraEventListener: " << e.what() << std::endl;
@@ -56,7 +56,6 @@ void CameraEventListener::handleEvent(const gp::CameraEvent& ev) {
                 << ev.type() << ": " << ev.typestr();
     }
     */
-    //std::cout << "got event" << std::endl;
 
     switch (ev.type()) {
     case Ce::EVENT_UNKNOWN: {
@@ -64,7 +63,11 @@ void CameraEventListener::handleEvent(const gp::CameraEvent& ev) {
         if(!ptp_property_regex.exactMatch(QString::fromStdString(ev.get<Ce::EVENT_UNKNOWN>())))
             break;
         const QString property = ptp_property_regex.capturedTexts()[1];
-        if (property == "d101") {
+        // d1d3: shutter was pressed?
+        if (property == "d1d9" || property == "d1d5" || property == "d1b0") {
+            // ignore
+        }
+        else if (property == "d101") {
             // Aperture changed
             emit apertureChanged();
         }
@@ -75,6 +78,9 @@ void CameraEventListener::handleEvent(const gp::CameraEvent& ev) {
         else if (property == "d103" || property == "d11b") { // TODO: both?
             // ISO changed
             emit isoChanged();
+        }
+        else {
+            // std::cout << "got event " << property.toStdString() << std::endl;
         }
         }
         break;

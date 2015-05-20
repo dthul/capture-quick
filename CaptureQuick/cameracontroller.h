@@ -47,6 +47,8 @@ public slots:
     void setShutter(const int index);
     void setIso(const int index);
 
+    void setViewfinder(bool on);
+
     void trigger();
     void readImage(const QFileInfo& fileInfo);
 

@@ -70,6 +70,9 @@ void CameraController::readConfig() {
     emit shutterChanged(shutter);
     emit isoChoicesChanged(isoChoices);
     emit isoChanged(iso);
+
+    gp::Camera::FileFunc func = [](const gp::Camera::FileInfo& info) -> void { std::cout << info.name << std::endl; };
+    m_gp_camera->for_each_file(func);
 }
 
 void CameraController::readAperture() {
@@ -83,7 +86,7 @@ void CameraController::readAperture() {
     }
 
     // Notify all observers about the change in settings
-    emit apertureChanged(aperture);;
+    emit apertureChanged(aperture);
 }
 
 void CameraController::readShutter() {
@@ -175,6 +178,11 @@ void CameraController::setRadioConfig(int value) {
         cfg.set(radio);
         std::cout << " new " << Obj::gpname << " " << radio.text() << std::endl;
     }
+}
+
+void CameraController::setViewfinder(bool on) {
+    auto cfg = m_gp_camera->config()["viewfinder"];
+    cfg.set<bool>(!on);
 }
 
 void CameraController::setAperture(const int index) {

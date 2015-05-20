@@ -143,6 +143,10 @@ void Camera::trigger() {
     QMetaObject::invokeMethod(m_controller, "trigger", Qt::QueuedConnection);
 }
 
+void Camera::setViewfinder(bool on) {
+    QMetaObject::invokeMethod(m_controller, "setViewfinder", Qt::QueuedConnection, Q_ARG(bool, on));
+}
+
 void Camera::c_resetDone() {
     if (m_state != CAMERA_SHUTDOWN) {
         m_state = CAMERA_CAPTURE;
