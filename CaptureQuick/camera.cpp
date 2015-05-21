@@ -14,7 +14,7 @@ Camera::Camera(QObject *parent) :
 
 }
 
-Camera::Camera(gp::Camera* const gp_camera, QObject *parent) :
+Camera::Camera(std::shared_ptr<gp::Camera> const gp_camera, QObject *parent) :
     QObject(parent),
     m_camera(gp_camera),
     m_controllerThread(new QThread()),
@@ -40,6 +40,7 @@ Camera::Camera(gp::Camera* const gp_camera, QObject *parent) :
     connect(m_controller, &CameraController::previewStarted, this, &Camera::c_previewStarted);
     connect(m_controller, &CameraController::previewStopped, this, &Camera::c_previewStopped);
     connect(m_controller, &CameraController::resetDone, this, &Camera::c_resetDone);
+    connect(m_controller, &CameraController::viewfinderChanged, this, &Camera::c_viewfinderChanged);
     // connect(m_controllerThread, &QThread::finished, this, &Camera::previewStopped);
     m_controllerThread->start();
 
@@ -75,18 +76,12 @@ Camera::~Camera()
     if (m_controllerThread) {
         // Wait at most 5 seconds for thread to stop
         if (!m_controllerThread->wait(5 * 1000))
-            std::cout << "~Camera(" << m_name.toStdString() << ") timed out" << std::endl;
-        else {
-            std::cout << "~Camera(" << m_name.toStdString() << ") joined" << std::endl;
-        }
+            std::cout << "~Camera(" << m_name.toStdString() << ") timed out while waiting for controller thread" << std::endl;
     }
     if (m_eventListenerThread) {
         // Wait at most 5 seconds for thread to stop
         if (!m_eventListenerThread->wait(5 * 1000))
-            std::cout << "~Camera(" << m_name.toStdString() << ") timed out" << std::endl;
-        else {
-            std::cout << "~Camera(" << m_name.toStdString() << ") joined" << std::endl;
-        }
+            std::cout << "~Camera(" << m_name.toStdString() << ") timed out while waiting for event listener thread" << std::endl;
     }
     delete m_controller;
     delete m_controllerThread;
@@ -94,8 +89,8 @@ Camera::~Camera()
     delete m_eventListenerThread;
 }
 
-gp::Camera* Camera::gp_camera() {
-    return m_camera;
+std::shared_ptr<gp::Camera> Camera::gp_camera() {
+    return std::shared_ptr<gp::Camera>(m_camera);
 }
 
 void Camera::readConfig() {
@@ -128,7 +123,8 @@ void Camera::c_previewStopped() {
     if (m_state != CAMERA_SHUTDOWN) {
         m_state = CAMERA_TRANSITIONING;
         emit stateChanged(m_state);
-        reset(); // release UI lock
+        // reset(); // release UI lock
+        setViewfinder(true);
     }
 }
 
@@ -151,6 +147,15 @@ void Camera::c_resetDone() {
     if (m_state != CAMERA_SHUTDOWN) {
         m_state = CAMERA_CAPTURE;
         emit stateChanged(m_state);
+    }
+}
+
+void Camera::c_viewfinderChanged(const bool on) {
+    if (m_state != CAMERA_SHUTDOWN) {
+        if (on && m_state == CAMERA_TRANSITIONING) {
+            m_state = CAMERA_CAPTURE;
+            emit stateChanged(m_state);
+        }
     }
 }
 

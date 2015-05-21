@@ -7,7 +7,7 @@
 #include <QMetaObject>
 #include <QSettings>
 
-CameraController::CameraController(Camera *camera, QObject *parent) :
+CameraController::CameraController(Camera * const camera, QObject *parent) :
     QObject(parent),
     m_camera(camera),
     m_gp_camera(camera->gp_camera()),
@@ -71,8 +71,8 @@ void CameraController::readConfig() {
     emit isoChoicesChanged(isoChoices);
     emit isoChanged(iso);
 
-    gp::Camera::FileFunc func = [](const gp::Camera::FileInfo& info) -> void { std::cout << info.name << std::endl; };
-    m_gp_camera->for_each_file(func);
+    //gp::Camera::FileFunc func = [](const gp::Camera::FileInfo& info) -> void { std::cout << info.name << std::endl; };
+    //m_gp_camera->for_each_file(func);
 }
 
 void CameraController::readAperture() {
@@ -100,7 +100,7 @@ void CameraController::readShutter() {
     }
 
     // Notify all observers about the change in settings
-    emit shutterChanged(shutter);;
+    emit shutterChanged(shutter);
 }
 
 void CameraController::readIso() {
@@ -114,7 +114,7 @@ void CameraController::readIso() {
     }
 
     // Notify all observers about the change in settings
-    emit isoChanged(iso);;
+    emit isoChanged(iso);
 }
 
 void CameraController::capturePreview() {
@@ -183,6 +183,7 @@ void CameraController::setRadioConfig(int value) {
 void CameraController::setViewfinder(bool on) {
     auto cfg = m_gp_camera->config()["viewfinder"];
     cfg.set<bool>(!on);
+    emit viewfinderChanged(on);
 }
 
 void CameraController::setAperture(const int index) {

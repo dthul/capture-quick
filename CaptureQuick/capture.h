@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include <QDir>
 #include <QObject>
 #include <QQmlApplicationEngine>
@@ -80,7 +82,7 @@ private:
     QList<Camera*> m_ui_cameras; // The arrangement of cameras in the UI. May contain null pointers
     QList<int> m_ui_camera_rotations;
     gp::Context gpcontext;
-    std::vector<gp::Camera> m_gp_cameras;
+    std::vector<std::shared_ptr<gp::Camera>> m_gp_cameras;
     int m_num_captured;
     TriggerBox *m_triggerBox;
     QThread *m_triggerBoxThread;

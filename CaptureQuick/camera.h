@@ -53,7 +53,7 @@ private:
     Q_PROPERTY(CameraState state READ state WRITE setState NOTIFY stateChanged)
 public:
     explicit Camera(QObject *parent = 0);
-    Camera(gp::Camera* const gp_camera, QObject *parent = 0);
+    Camera(std::shared_ptr<gp::Camera> const gp_camera, QObject *parent = 0);
     ~Camera();
 
     QString name() const;
@@ -93,7 +93,7 @@ public:
     CameraState state() const;
     void setState(const CameraState state);
 
-    gp::Camera* gp_camera();
+    std::shared_ptr<gp::Camera> gp_camera();
 
 signals:
     void nameChanged(const QString& newName);
@@ -134,6 +134,7 @@ private slots:
     void c_setApertureIndex(const int aperture);
     void c_setShutterIndex(const int shutter);
     void c_setIsoIndex(const int iso);
+    void c_viewfinderChanged(const bool on);
     void c_previewStarted();
     void c_previewStopped();
     void c_resetDone();
@@ -142,7 +143,7 @@ private:
     // Will request a configuration read from the controller.
     void reset();
 
-    gp::Camera* m_camera = nullptr;
+    std::shared_ptr<gp::Camera> m_camera = nullptr;
 
     QStringList m_apertureChoices;
     QStringList m_shutterChoices;

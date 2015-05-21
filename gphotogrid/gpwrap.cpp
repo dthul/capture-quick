@@ -2,7 +2,6 @@
 #include <gphoto2/gphoto2.h>
 #include <iostream>
 #include <algorithm>
-#include <memory>
 #include <fstream>
 #include <cstdlib>
 #include <sys/stat.h>
@@ -83,14 +82,14 @@ Camera Context::auto_camera() {
 	return Camera(*this);
 }
 
-std::vector<Camera> Context::all_cameras() {
+std::vector<std::shared_ptr<Camera>> Context::all_cameras() {
 	auto list = GP_NEW_UNIQUE(CameraList, gp_list);
 	int ret;
 	if ((ret = gp_camera_autodetect(list.get(), context)) < GP_OK) {
 		throw Exception("gp_camera_autodetect", ret);
 	}
 
-	std::vector<Camera> cams;
+    std::vector<std::shared_ptr<Camera>> cams;
 	for (int i = 0, count = ret; i < count; i++) {
 		const char *name, *value;
 		gp_list_get_name(list.get(), i, &name);
@@ -98,7 +97,7 @@ std::vector<Camera> Context::all_cameras() {
 		// XXX: remove this debug message?
 		std::cout << name << "|" << value << std::endl;
 		// cannot emplace because private ctor
-		cams.push_back(Camera(name, value, *this));
+        cams.push_back(std::shared_ptr<Camera>(new Camera(name, value, *this)));
 	}
 	return cams;
 }
@@ -405,8 +404,12 @@ void Camera::for_each_file_in_folder(const FileFunc& func, const std::string& fo
         info.folder = folder;
         info.name = file_name;
         if (file_info.file.fields & GP_FILE_INFO_MTIME) {
-            info.fields |= FILE_TIME;
+            info.fields |= FILE_INFO_TIME;
             info.time = file_info.file.mtime;
+        }
+        if (file_info.file.fields & GP_FILE_INFO_TYPE) {
+            info.fields |= FILE_INFO_TYPE;
+            info.type = file_info.file.type;
         }
         func(info);
     }

@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <memory>
 #include <mutex>
 #include <utility>
 
@@ -52,7 +53,7 @@ public:
 	Camera auto_camera();
 	// Give all found cameras with gp_camera_autodetect with no filterin on
 	// names, ports, or anything
-	std::vector<Camera> all_cameras();
+    std::vector<std::shared_ptr<Camera>> all_cameras();
 	~Context();
 
 	// camera uses the context pointer all over the place
@@ -108,8 +109,9 @@ public:
 	friend class Widget;
 
     void print_filesystem();
-    enum FileFields {
-        FILE_TIME
+    enum FileInfoFields {
+        FILE_INFO_TIME,
+        FILE_INFO_TYPE
     };
 
     struct FileInfo {
@@ -117,6 +119,7 @@ public:
         std::string name;
         uint32_t fields = 0;
         time_t time;
+        std::string type;
     };
 
     typedef std::function<void(const FileInfo&)> FileFunc;

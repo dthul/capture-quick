@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include <QFileInfo>
 #include <QImage>
 #include <QObject>
@@ -14,7 +16,7 @@ class CameraController : public QObject
 {
     Q_OBJECT
 public:
-    CameraController(Camera *camera, QObject *parent = 0);
+    CameraController(Camera* const camera, QObject *parent = 0);
     ~CameraController();
 
 signals:
@@ -27,6 +29,8 @@ signals:
     void apertureChoicesChanged(const QStringList& newApertureChoices);
     void shutterChoicesChanged(const QStringList& newShutterChoices);
     void isoChoicesChanged(const QStringList& newIsoChoices);
+
+    void viewfinderChanged(const bool on);
 
     void newPreviewImage(QSharedPointer<Image> preview);
     void newImage(QSharedPointer<Image> image);
@@ -57,7 +61,7 @@ private slots:
     void capturePreview();
 private:
     Camera *m_camera;
-    gp::Camera *m_gp_camera;
+    std::shared_ptr<gp::Camera> m_gp_camera;
     volatile bool m_previewRunning;
     template <class Obj>
     void setRadioConfig(int value);

@@ -8,7 +8,7 @@
 #include <QStringList>
 #include <QThread>
 
-CameraEventListener::CameraEventListener(gp::Camera *camera, QObject *parent) :
+CameraEventListener::CameraEventListener(std::shared_ptr<gp::Camera> const camera, QObject *parent) :
     QObject(parent),
     m_camera(camera),
     m_listen(true)

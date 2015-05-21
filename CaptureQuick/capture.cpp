@@ -4,8 +4,10 @@
 #include <cmath>
 
 #include <QQmlContext>
+#include <QRunnable>
 #include <QSettings>
 #include <QStandardPaths>
+#include <QThreadPool>
 #include <QVariant>
 
 #include "persist.h"
@@ -23,7 +25,7 @@ Capture::Capture(QQmlApplicationEngine* const qmlEngine, QObject *parent) :
     m_gp_cameras = gpcontext.all_cameras();
     std::cout << "Found " << m_gp_cameras.size() << " cameras" << std::endl;
     for (auto& gp_camera : m_gp_cameras) {
-        Camera* camera = new Camera(&gp_camera);
+        Camera* camera = new Camera(gp_camera);
         m_cameras.append(camera);
         connect(camera, &Camera::imageChanged, this, &Capture::newImageCaptured);
         connect(camera, &Camera::rawImageChanged, this, &Capture::newImageCaptured);
@@ -42,28 +44,35 @@ Capture::Capture(QQmlApplicationEngine* const qmlEngine, QObject *parent) :
     m_qml_engine->rootContext()->setContextProperty("capture", this);
 }
 
+class DeleteCameraTask : public QRunnable
+{
+public:
+    DeleteCameraTask(Camera* const camera) : camera(camera) {}
+private:
+    void run() { delete camera; }
+    Camera* const camera;
+};
+
 Capture::~Capture()
 {
-    // TODO: somehow destroy the gp::Cameras in parallel, since destroying
-    // them sequentially is unnecessary and takes a lot of time
-    // HACK for now: first switch all cameras to capture mode.
-    // This speeds the process up a little
-    for (auto camera : m_cameras)
-        camera->setState(Camera::CameraState::CAMERA_CAPTURE);
-
     if (m_triggerBoxThread) {
         m_triggerBoxThread->quit();
-        m_triggerBoxThread->wait(3);
+        m_triggerBoxThread->wait(1000);
     }
     delete m_triggerBox;
     delete m_triggerBoxThread;
 
-    for (auto camera : m_cameras)
-        delete camera;
-    m_cameras.clear();
-    // This is the call that actually releases the cameras
-    // by destroying the underlying gp::Cameras
+    // Destroys Capture's shared_ptrs to the gp::Cameras
     m_gp_cameras.clear();
+
+    // Destroys the remaining shared_ptrs to the gp::Cameras.
+    // This will actually release the cameras and takes some time
+    // so do it in parallel.
+    // (instead of doing m_cameras.clear())
+    QThreadPool::globalInstance()->setMaxThreadCount(m_cameras.size());
+    for (auto camera : m_cameras)
+        QThreadPool::globalInstance()->start(new DeleteCameraTask(camera));
+    QThreadPool::globalInstance()->waitForDone(8 * 1000);
 }
 
 int Capture::numCaptured() const {
@@ -328,7 +337,7 @@ void Capture::resetCameraArrangement() {
     m_ui_cameras.clear();
     m_ui_cameras.append(m_cameras);
     m_ui_camera_rotations.clear();
-    for (auto _ : m_ui_cameras)
+    for (int _ = 0; _ < m_ui_cameras.length(); ++_)
         m_ui_camera_rotations.append(0);
     emit uiCamerasChanged();
     emit uiCameraRotationsChanged();
