@@ -49,6 +49,7 @@ int main(int argc, char *argv[])
     // Register meta types to make them usable in signal / slot connections
     qRegisterMetaType<QFileInfo>("QFileInfo");
     qRegisterMetaType<QSharedPointer<Image>>("QSharedPointer<Image>");
+    qRegisterMetaType<Camera::CameraState>("CameraState");
 
     QQmlApplicationEngine engine;
 
