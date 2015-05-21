@@ -5,10 +5,12 @@ MouseArea {
     id: tag
     property QtObject image
     property string text
+    property bool hidden: false
+    visible: !image.empty && !hidden
     width: rect.width
-    height: image.empty ? 0 : rect.height
-    enabled: !image.empty
-    opacity: image.empty ? 0 : 1
+    height: rect.height
+    enabled: visible
+    // opacity: image.empty ? 0 : 1
     cursorShape: image.saved ? Qt.PointingHandCursor : Qt.ArrowCursor
     Rectangle {
         id: rect

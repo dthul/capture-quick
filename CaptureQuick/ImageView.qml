@@ -170,10 +170,12 @@ Item {
             ImageFormatTag {
                 text: "RAW"
                 image: model.rawImage
+                hidden: model.state !== Camera.CAMERA_CAPTURE
             }
             ImageFormatTag {
                 text: "JPEG"
                 image: model.image
+                hidden: model.state !== Camera.CAMERA_CAPTURE
             }
         }
     }
@@ -188,7 +190,16 @@ Item {
         anchors.centerIn: parent
         // The "live" image provider has been registered from
         // the C++ code
-        source: "image://live/" + ((model.state === Camera.CAMERA_PREVIEW) ? model.preview.url : ((!model.image.empty) ? model.image.url : model.rawImage.url))
+        source: (model.state === Camera.CAMERA_PREVIEW ?
+                     "image://live/" + model.preview.url
+                   :
+                     (model.state === Camera.CAMERA_CAPTURE ?
+                         (!model.image.empty ?
+                              "image://live/" + model.image.url
+                            :
+                              "image://live/" + model.rawImage.url)
+                        :
+                          "qrc:/testchart.png"))
         visible: false
     }
 
