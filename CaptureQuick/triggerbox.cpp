@@ -30,10 +30,8 @@ void TriggerBox::init() {
     for (auto info : portInfos) {
         if (info.vendorIdentifier() == VID && info.productIdentifier() == PID) {
             serialPort->setPort(info);
-            //serialPort->setBaudRate(QSerialPort::Baud9600);
         }
     }
-    // serialPort.setBaudRate(QSerialPort::Baud9600); // TODO: which baud rate?
     if (!serialPort->open(QIODevice::ReadWrite)) {
         std::cerr << "Failed to open serial connection to the trigger box" << std::endl;
         // TODO: throw error instead?
@@ -51,7 +49,6 @@ void TriggerBox::init() {
 
 void TriggerBox::readSerial() {
     QByteArray data = serialPort->readAll();
-    std::cout << "Read: " << QString(data).toStdString() << std::endl;
 }
 
 void TriggerBox::focusAll() {
@@ -92,9 +89,6 @@ bool TriggerBox::write(const QString& data) {
             std::cerr << "Operation timed out or an error occurred for the trigger box: " << serialPort->errorString().toStdString() << std::endl;
             return false;
         }
-        else {
-            std::cout << "Wrote: " << bytes.at(i) << std::endl;
-        }
         if (!serialPort->waitForReadyRead(5000)) {
             std::cerr << "Got no response" << std::endl;
             return false;
@@ -107,8 +101,6 @@ bool TriggerBox::write(const QString& data) {
         } else if (bytesWritten != 1) {
             std::cerr << "Failed to read all the data from the trigger box: " << serialPort->errorString().toStdString() << std::endl;
             return false;
-        } else {
-            std::cout << "Read: " << response << std::endl;
         }
     }
     return true;
