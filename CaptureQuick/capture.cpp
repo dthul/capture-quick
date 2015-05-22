@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <stdlib.h>
 
 #include <QQmlContext>
 #include <QRunnable>
@@ -12,36 +13,39 @@
 
 #include "persist.h"
 
-Capture::Capture(QQmlApplicationEngine* const qmlEngine, QObject *parent) :
+Capture::Capture(QObject *parent) :
     QObject(parent),
-    m_qml_engine(qmlEngine),
     m_num_captured(0),
-    m_triggerBox(new TriggerBox()),
-    m_triggerBoxThread(new QThread()),
+    m_triggerBox(TriggerBox::getInstance()),
+    // m_triggerBoxThread(new QThread()),
     m_num_rows(1),
     m_num_cols(1),
-    m_all_camera_names_known(false)
-{
+    m_all_camera_names_known(true),
+    m_connected(false)
+{ }
+
+void Capture::connect() {
+    if (m_connected)
+        return;
+#ifdef __APPLE__
+    system("killall PTPCamera");
+#endif
     m_gp_cameras = gpcontext.all_cameras();
     std::cout << "Found " << m_gp_cameras.size() << " cameras" << std::endl;
     for (auto& gp_camera : m_gp_cameras) {
         Camera* camera = new Camera(gp_camera);
         m_cameras.append(camera);
-        connect(camera, &Camera::imageChanged, this, &Capture::newImageCaptured);
-        connect(camera, &Camera::rawImageChanged, this, &Capture::newImageCaptured);
-        connect(camera, &Camera::nameChanged, this, &Capture::cameraNameChanged);
+        QObject::connect(camera, &Camera::imageChanged, this, &Capture::newImageCaptured);
+        QObject::connect(camera, &Camera::rawImageChanged, this, &Capture::newImageCaptured);
+        QObject::connect(camera, &Camera::nameChanged, this, &Capture::cameraNameChanged);
         camera->readConfig();
     }
-
-    m_triggerBox->moveToThread(m_triggerBoxThread);
-    connect(m_triggerBoxThread, &QThread::started, m_triggerBox, &TriggerBox::init);
-    m_triggerBoxThread->start();
-
-    // will be freed by Qt
-    LiveImageProvider *liveImgProvider = LiveImageProvider::getInstance();
-    m_qml_engine->addImageProvider("live", liveImgProvider);
-
-    m_qml_engine->rootContext()->setContextProperty("capture", this);
+    if (m_cameras.size() > 0) {
+        m_all_camera_names_known = false;
+        emit allConfiguredChanged(false);
+    }
+    emit allCamerasChanged();
+    m_connected = true;
 }
 
 class DeleteCameraTask : public QRunnable
@@ -53,26 +57,45 @@ private:
     Camera* const camera;
 };
 
-Capture::~Capture()
-{
-    if (m_triggerBoxThread) {
-        m_triggerBoxThread->quit();
-        m_triggerBoxThread->wait(1000);
-    }
-    delete m_triggerBox;
-    delete m_triggerBoxThread;
+void Capture::disconnect() {
+    if (!m_connected)
+        return;
 
     // Destroys Capture's shared_ptrs to the gp::Cameras
     m_gp_cameras.clear();
 
+    // The uiCamerasChanged and allCamerasChanged signals must be emitted before
+    // actually deleting the underlying Cameras, otherwise QML will hold pointers
+    // to deleted objects which ends badly.
+    // That's why we keep a copy of m_cameras here to be able to delete them later.
+    QList<Camera*> cameras(m_cameras);
+    m_cameras.clear();
+    m_ui_cameras.clear();
+    m_all_camera_names_known = true;
+    m_num_rows = 1;
+    m_num_cols = 1;
+    m_num_captured = 0;
+    m_connected = false;
+    emit uiCamerasChanged();
+    emit allCamerasChanged();
+    emit allConfiguredChanged(true);
+    emit numRowsChanged(m_num_rows);
+    emit numColsChanged(m_num_cols);
+    emit numCapturedChanged(m_num_captured);
+
     // Destroys the remaining shared_ptrs to the gp::Cameras.
     // This will actually release the cameras and takes some time
     // so do it in parallel.
-    // (instead of doing m_cameras.clear())
-    QThreadPool::globalInstance()->setMaxThreadCount(m_cameras.size());
-    for (auto camera : m_cameras)
+    // (instead of just doing m_cameras.clear())
+    QThreadPool::globalInstance()->setMaxThreadCount(cameras.size());
+    for (auto camera : cameras)
         QThreadPool::globalInstance()->start(new DeleteCameraTask(camera));
     QThreadPool::globalInstance()->waitForDone(8 * 1000);
+}
+
+Capture::~Capture() {
+    // Don't emit signals from the destructor
+    disconnect();
 }
 
 int Capture::numCaptured() const {

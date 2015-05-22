@@ -118,6 +118,8 @@ void Camera::c_previewStarted() {
 }
 
 void Camera::c_previewStopped() {
+    // Make sure that the signal is emitted before the old Image is deleted
+    QSharedPointer<Image> tmp(m_latest_preview);
     m_latest_preview = QSharedPointer<Image>(new Image(":/testchart.png"));
     emit previewChanged(m_latest_preview.data());
     if (m_state != CAMERA_SHUTDOWN) {
@@ -312,6 +314,8 @@ void Camera::stopPreview() {
 void Camera::c_setPreviewImage(QSharedPointer<Image> preview) {
     if (m_state != CAMERA_PREVIEW)
         return;
+    // Make sure that the signal is emitted before the old Image is deleted
+    QSharedPointer<Image> tmp(m_latest_preview);
     m_latest_preview = preview;
     emit previewChanged(m_latest_preview.data());
 }
@@ -320,16 +324,23 @@ void Camera::c_setImage(QSharedPointer<Image> image) {
     if (m_state != CAMERA_CAPTURE)
         return;
     if (image->is_raw()) {
+        // Make sure that the signal is emitted before the old Image is deleted
+        QSharedPointer<Image> tmp(m_latest_raw_image);
         m_latest_raw_image = image;
         emit rawImageChanged(m_latest_raw_image.data());
     }
     else {
+        // Make sure that the signal is emitted before the old Image is deleted
+        QSharedPointer<Image> tmp(m_latest_image);
         m_latest_image = image;
         emit imageChanged(m_latest_image.data());
     }
 }
 
 void Camera::clearLatestImage() {
+    // Make sure that the signal is emitted before the old Image is deleted
+    QSharedPointer<Image> tmp1(m_latest_image);
+    QSharedPointer<Image> tmp2(m_latest_raw_image);
     m_latest_image = QSharedPointer<Image>(new Image());
     m_latest_raw_image = QSharedPointer<Image>(new Image());
     emit imageChanged(m_latest_image.data());

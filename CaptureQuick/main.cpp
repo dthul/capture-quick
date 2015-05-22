@@ -32,7 +32,6 @@ int main(int argc, char *argv[])
             util::setenv("CAMLIBS", camlib_dir.absolutePath().toStdString());
         }
     }
-    system("killall PTPCamera");
 #else
 #warning "No libgphoto2 environment variables specified for this operating system. If you want to deploy the application stand-alone you probably have to set them."
 #endif
@@ -53,9 +52,17 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
 
-    Capture capture(&engine);
+    Capture capture;
+
+    // will be freed by Qt
+    LiveImageProvider *liveImgProvider = LiveImageProvider::getInstance();
+    engine.addImageProvider("live", liveImgProvider);
+
+    engine.rootContext()->setContextProperty("capture", &capture);
 
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
+
+    capture.connect();
 
     return app.exec();
 }

@@ -2,104 +2,141 @@
 
 #include <chrono>
 #include <iostream>
+#include <stdexcept>
 #include <thread>
 
+#include <QMutexLocker>
 #include <QSerialPortInfo>
 
 const quint16 VID = 0x0483; // STMicroelectronics
 const quint16 PID = 0x374B; // Nucleo-F401RE
 
-// TODO: make singleton since only one serial port connection
-// can be open at a time anyway.
-TriggerBox::TriggerBox(QObject *parent) : QObject(parent)
+TriggerBox* TriggerBox::triggerBox = nullptr;
+QMutex TriggerBox::s_mutex;
+
+#define CHECK_SUCCESS(X)\
+    if ((X) != true) {\
+        std::cerr << "Serial port is not connected" << std::endl;\
+        return;\
+    }
+
+TriggerBox* TriggerBox::getInstance() {
+    QMutexLocker locker(&s_mutex);
+    if (!triggerBox)
+        triggerBox = new TriggerBox();
+    return triggerBox;
+}
+
+TriggerBox::TriggerBox(QObject *parent) :
+    QObject(parent),
+    m_serialPort(nullptr)
 {
+    this->moveToThread(&m_thread);
+    QObject::connect(&m_thread, &QThread::started, this, &TriggerBox::ensureConnection);
+    m_thread.start();
 }
 
 TriggerBox::~TriggerBox()
 {
-    if (serialPort) {
-        if (serialPort->isOpen())
-            serialPort->close();
-        delete serialPort;
-    }
+    disconnect();
 }
 
-void TriggerBox::init() {
-    serialPort = new QSerialPort();
+bool TriggerBox::connect() {
+    if (m_serialPort)
+        disconnect();
+    m_serialPort = new QSerialPort();
     QList<QSerialPortInfo> portInfos = QSerialPortInfo::availablePorts();
     for (auto info : portInfos) {
         if (info.vendorIdentifier() == VID && info.productIdentifier() == PID) {
-            serialPort->setPort(info);
+            m_serialPort->setPort(info);
         }
     }
-    if (!serialPort->open(QIODevice::ReadWrite)) {
+    m_serialPort->setBaudRate(QSerialPort::Baud9600);
+    m_serialPort->setParity(QSerialPort::NoParity);
+    m_serialPort->setStopBits(QSerialPort::OneStop);
+    m_serialPort->setDataBits(QSerialPort::Data8);
+    m_serialPort->setFlowControl(QSerialPort::NoFlowControl);
+    if (!m_serialPort->open(QIODevice::ReadWrite)) {
         std::cerr << "Failed to open serial connection to the trigger box" << std::endl;
         // TODO: throw error instead?
+        return false;
     }
     else {
         std::cout << "Serial connection opened" << std::endl;
-        //connect(serialPort, &QSerialPort::readyRead, this, &TriggerBox::readSerial);
-        serialPort->setBaudRate(QSerialPort::Baud9600);
-        serialPort->setParity(QSerialPort::NoParity);
-        serialPort->setStopBits(QSerialPort::OneStop);
-        serialPort->setDataBits(QSerialPort::Data8);
-        serialPort->setFlowControl(QSerialPort::NoFlowControl);
     }
+    return true;
+}
+
+void TriggerBox::disconnect() {
+    if (m_serialPort) {
+        if (m_serialPort->isOpen())
+            m_serialPort->close();
+        delete m_serialPort;
+        m_serialPort = nullptr;
+    }
+}
+
+bool TriggerBox::ensureConnection() {
+    if (m_serialPort && m_serialPort->isReadable() && m_serialPort->isWritable())
+        return true;
+    return connect();
 }
 
 void TriggerBox::readSerial() {
-    QByteArray data = serialPort->readAll();
+    QByteArray data = m_serialPort->readAll();
 }
 
-void TriggerBox::focusAll() {
-    if (!serialPort || !serialPort->isWritable()) {
-        std::cerr << "Serial port is not writable, will not focus" << std::endl;
-        return;
-    }
-    write("1111111111F ");
-    std::this_thread::sleep_for(std::chrono::seconds(2));
-    write("R ");
+void TriggerBox::focusAll(const int milliseconds) {
+    QMutexLocker locker(&m_mutex);
+    CHECK_SUCCESS(ensureConnection())
+    CHECK_SUCCESS(write("1111111111F "))
+    std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+    CHECK_SUCCESS(write("R"))
 }
 
 void TriggerBox::triggerAll() {
-    if (!serialPort || !serialPort->isWritable()) {
-        std::cerr << "Serial port is not writable, will not trigger" << std::endl;
-        return;
-    }
-    write("1111111111S ");
+    QMutexLocker locker(&m_mutex);
+    CHECK_SUCCESS(ensureConnection())
+    CHECK_SUCCESS(write("1111111111S "))
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    write("R");
+    CHECK_SUCCESS(write("R"))
 }
 
 bool TriggerBox::write(const QString& data) {
-    if (!serialPort || !serialPort->isWritable())
+    if (!m_serialPort || !m_serialPort->isWritable())
         return false;
-    serialPort->readAll();
+    m_serialPort->readAll();
     QByteArray bytes = data.toLatin1();
     char const * const cdata = bytes.data();
     for (int i = 0; i < data.size(); ++i) {
-        qint64 bytesWritten = serialPort->write(cdata + i, 1);
+        qint64 bytesWritten = m_serialPort->write(cdata + i, 1);
         if (bytesWritten == -1) {
-            std::cerr << "Failed to write the data to the trigger box: " << serialPort->errorString().toStdString() << std::endl;
+            std::cerr << "Failed to write the data to the trigger box: " << m_serialPort->errorString().toStdString() << std::endl;
+            disconnect();
             return false;
         } else if (bytesWritten != 1) {
-            std::cerr << "Failed to write all the data to the trigger box: " << serialPort->errorString().toStdString() << std::endl;
+            std::cerr << "Failed to write all the data to the trigger box: " << m_serialPort->errorString().toStdString() << std::endl;
+            disconnect();
             return false;
-        } else if (!serialPort->waitForBytesWritten(5000)) {
-            std::cerr << "Operation timed out or an error occurred for the trigger box: " << serialPort->errorString().toStdString() << std::endl;
+        } else if (!m_serialPort->waitForBytesWritten(5000)) {
+            std::cerr << "Operation timed out or an error occurred for the trigger box: " << m_serialPort->errorString().toStdString() << std::endl;
+            disconnect();
             return false;
         }
-        if (!serialPort->waitForReadyRead(5000)) {
+        if (!m_serialPort->waitForReadyRead(5000)) {
             std::cerr << "Got no response" << std::endl;
+            disconnect();
             return false;
         }
         char response;
-        qint64 bytesRead = serialPort->read(&response, 1);
+        qint64 bytesRead = m_serialPort->read(&response, 1);
         if (bytesRead == -1) {
-            std::cerr << "Failed to read the data from the trigger box: " << serialPort->errorString().toStdString() << std::endl;
+            std::cerr << "Failed to read the data from the trigger box: " << m_serialPort->errorString().toStdString() << std::endl;
+            disconnect();
             return false;
         } else if (bytesWritten != 1) {
-            std::cerr << "Failed to read all the data from the trigger box: " << serialPort->errorString().toStdString() << std::endl;
+            std::cerr << "Failed to read all the data from the trigger box: " << m_serialPort->errorString().toStdString() << std::endl;
+            disconnect();
             return false;
         }
     }

@@ -21,14 +21,14 @@ class Capture : public QObject
     Q_PROPERTY(bool autoSave READ autoSave WRITE setAutoSave NOTIFY autoSaveChanged)
     Q_PROPERTY(bool saveJpeg READ saveJpeg WRITE setSaveJpeg NOTIFY saveJpegChanged)
     Q_PROPERTY(bool saveRaw READ saveRaw WRITE setSaveRaw NOTIFY saveRawChanged)
-    Q_PROPERTY(QQmlListProperty<Camera> allCameras READ allCameras CONSTANT)
+    Q_PROPERTY(QQmlListProperty<Camera> allCameras READ allCameras NOTIFY allCamerasChanged)
     Q_PROPERTY(QQmlListProperty<Camera> uiCameras READ uiCameras NOTIFY uiCamerasChanged)
     Q_PROPERTY(QList<int> uiCameraRotations READ uiCameraRotations NOTIFY uiCameraRotationsChanged)
     Q_PROPERTY(int numRows READ numRows NOTIFY numRowsChanged)
     Q_PROPERTY(int numCols READ numCols NOTIFY numColsChanged)
     Q_PROPERTY(bool allConfigured READ allConfigured NOTIFY allConfiguredChanged)
 public:
-    Capture(QQmlApplicationEngine* const qmlEngine, QObject *parent = 0);
+    explicit Capture(QObject *parent = 0);
     ~Capture();
 
     int numCaptured() const;
@@ -58,6 +58,7 @@ signals:
     void numRowsChanged(const int numRows);
     void alert(QString message);
     void allConfiguredChanged(bool configured);
+    void allCamerasChanged();
     void uiCamerasChanged();
     void uiCameraRotationsChanged();
 public slots:
@@ -68,6 +69,8 @@ public slots:
     void loadCameraArrangementFromFile(const QString& fileName);
     void writeCameraArrangementToFile(const QString& fileName);
     void resetCameraArrangement();
+    void connect();
+    void disconnect();
 private slots:
     void newImageCaptured(Image* image);
     void cameraNameChanged(const QString& name);
@@ -77,7 +80,6 @@ private:
     void loadCameraArrangement(QString arrangement);
     void loadCameraArrangementFromSettings();
     Camera* findCameraByName(const QString& name);
-    QQmlApplicationEngine* const m_qml_engine;
     QList<Camera*> m_cameras; // A list of all connected cameras. Does not contain null pointers
     QList<Camera*> m_ui_cameras; // The arrangement of cameras in the UI. May contain null pointers
     QList<int> m_ui_camera_rotations;
@@ -89,4 +91,5 @@ private:
     int m_num_rows;
     int m_num_cols;
     bool m_all_camera_names_known;
+    bool m_connected;
 };

@@ -85,12 +85,22 @@ ApplicationWindow {
             MenuItem {
                 shortcut: "Ctrl+N"
                 text: qsTr("&New")
+                enabled: false // not yet implemented
                 onTriggered: arrangementDesigner.visible = true
             }
             MenuItem {
                 shortcut: "Ctrl+R"
                 text: qsTr("&Reset")
                 onTriggered: capture.resetCameraArrangement()
+            }
+        }
+        Menu {
+            title: qsTr("&Video")
+            MenuItem {
+                text: qsTr("Capture")
+            }
+            MenuItem {
+                text: qsTr("Download")
             }
         }
     }
@@ -286,6 +296,14 @@ ApplicationWindow {
                     text: "Focus"
                     onClicked: capture.focusAll()
                 }
+                Button {
+                    text: "Connect"
+                    onClicked: capture.connect()
+                }
+                Button {
+                    text: "Disconnect"
+                    onClicked: capture.disconnect()
+                }
             }
         }
 
@@ -317,15 +335,6 @@ ApplicationWindow {
             }
         }
     }
-
-    /*function reloadImageGrid() {
-        var newChild = Qt.createComponent("ImageView.qml")
-        Qt.createQmlObject()
-        newChild.model = capture.allCameras[0]
-        newChild.Layout.fillHeight = true
-        newChild.Layout.fillWidth = true
-        imageGrid.children = [newChild]
-    }*/
 
     MessageDialog {
         id: alertDialog
