@@ -14,8 +14,8 @@ public:
 signals:
 
 public slots:
-    void focusAll(const int milliseconds = 2000);
-    void triggerAll();
+    void halfPressShutterAll(const int milliseconds = 200);
+    void pressShutterAll(const int milliseconds = 200);
 private:
     bool connect();
     void disconnect();

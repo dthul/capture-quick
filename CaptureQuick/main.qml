@@ -282,9 +282,10 @@ ApplicationWindow {
                 }
                 Button {
                     text: qsTr("Capture")
+                    enabled: capture.commonState === Camera.CAMERA_CAPTURE
                     onClicked: {
                         capture.newCapture()
-                        capture.triggerAll()
+                        capture.pressShutterAll()
                     }
                     anchors.left: parent.left
                     anchors.right: parent.right
@@ -301,7 +302,7 @@ ApplicationWindow {
                 }
                 Button {
                     text: "Focus"
-                    onClicked: capture.focusAll()
+                    onClicked: capture.halfPressShutterAll(2000)
                 }
                 Button {
                     text: "Connect"

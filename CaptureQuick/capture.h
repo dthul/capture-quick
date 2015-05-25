@@ -69,8 +69,8 @@ signals:
 public slots:
     void newCapture();
     void saveCaptureToDisk();
-    void focusAll();
-    void triggerAll();
+    void halfPressShutterAll(const int milliseconds = 200);
+    void pressShutterAll(const int milliseconds = 200);
     void loadCameraArrangementFromFile(const QString& fileName);
     void writeCameraArrangementToFile(const QString& fileName);
     void resetCameraArrangement();

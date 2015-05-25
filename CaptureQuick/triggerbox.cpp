@@ -86,7 +86,7 @@ void TriggerBox::readSerial() {
     QByteArray data = m_serialPort->readAll();
 }
 
-void TriggerBox::focusAll(const int milliseconds) {
+void TriggerBox::halfPressShutterAll(const int milliseconds) {
     QMutexLocker locker(&m_mutex);
     CHECK_SUCCESS(ensureConnection())
     CHECK_SUCCESS(write("1111111111F "))
@@ -94,11 +94,11 @@ void TriggerBox::focusAll(const int milliseconds) {
     CHECK_SUCCESS(write("R"))
 }
 
-void TriggerBox::triggerAll() {
+void TriggerBox::pressShutterAll(const int milliseconds) {
     QMutexLocker locker(&m_mutex);
     CHECK_SUCCESS(ensureConnection())
     CHECK_SUCCESS(write("1111111111S "))
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
     CHECK_SUCCESS(write("R"))
 }
 

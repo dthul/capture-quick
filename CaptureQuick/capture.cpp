@@ -183,12 +183,12 @@ void Capture::setSaveRaw(bool saveRaw) {
     emit saveRawChanged(saveRaw);
 }
 
-void Capture::focusAll() {
-    QMetaObject::invokeMethod(m_triggerBox, "focusAll", Qt::QueuedConnection);
+void Capture::halfPressShutterAll(const int milliseconds) {
+    QMetaObject::invokeMethod(m_triggerBox, "halfPressShutterAll", Qt::QueuedConnection, Q_ARG(int, milliseconds));
 }
 
-void Capture::triggerAll() {
-    QMetaObject::invokeMethod(m_triggerBox, "triggerAll", Qt::QueuedConnection);
+void Capture::pressShutterAll(const int milliseconds) {
+    QMetaObject::invokeMethod(m_triggerBox, "pressShutterAll", Qt::QueuedConnection, Q_ARG(int, milliseconds));
 }
 
 void Capture::cameraStateChanged() {

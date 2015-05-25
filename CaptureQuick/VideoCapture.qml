@@ -19,7 +19,7 @@ Window {
     }
 
     onClosing: {
-        if (captureActive || step !== "explanationafter") {
+        if (captureActive || step === "capture") {
             close.accepted = false
             return
         }
@@ -35,8 +35,18 @@ Window {
 
     Column {
         visible: step == "explanationbefore" && status == "disconnected"
-        Label {
-            text: "Disconnect all cameras from USB now, switch them to video mode and make sure that only the trigger box stays connected via USB."
+        Text {
+            textFormat: Text.StyledText
+            text: "Execute these steps for all cameras:<br>
+                    <ul>
+                        <li>disconnect the camera from USB</li>
+                        <li>switch it to OFF</li>
+                        <li>switch it to video mode</li>
+                    </ul><br>
+                    All cameras' screens should show the normal live preview with the video option overlays now.<br>
+                    <ul>
+                        <li>make sure that the trigger box is connected via USB</li>
+                    </ul>"
         }
         Button {
             text: "Done!"
@@ -49,7 +59,7 @@ Window {
         Button {
             text: captureActive ? "Stop Recording" : "Start Recording"
             onClicked: {
-                // TODO: half-press shutter
+                capture.halfPressShutterAll()
                 captureActive = !captureActive
             }
         }
