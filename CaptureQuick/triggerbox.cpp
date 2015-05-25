@@ -77,8 +77,7 @@ void TriggerBox::disconnect() {
 }
 
 bool TriggerBox::ensureConnection() {
-    // TODO: first try to write a char to the port to really see if it is open?
-    if (m_serialPort && m_serialPort->isReadable() && m_serialPort->isWritable())
+    if (m_serialPort && m_serialPort->isReadable() && m_serialPort->isWritable() && write("X"))
         return true;
     return connect();
 }
