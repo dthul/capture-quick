@@ -39,7 +39,7 @@ void LiveImageProvider::unregisterImage(const class Image *const image) {
 
 QString LiveImageProvider::urlFor(const class Image *const image) const {
     QMutexLocker locker(&m_mutex);
-    return QString::number(image->id());
+    return "image://live/" + QString::number(image->id());
 }
 
 QImage LiveImageProvider::requestImage(const QString &url, QSize *size, const QSize &/*requestedSize*/) {

@@ -3,6 +3,7 @@ import QtQuick.Controls 1.3
 import QtQuick.Controls.Styles 1.3
 import QtQuick.Layouts 1.1
 import QtGraphicalEffects 1.0
+
 import CaptureQuick 0.1 // Makes the Camera class available (registered in main.cpp)
 
 Item {
@@ -191,13 +192,13 @@ Item {
         // The "live" image provider has been registered from
         // the C++ code
         source: (model.state === Camera.CAMERA_PREVIEW ?
-                     "image://live/" + model.preview.url
+                     model.preview.url
                    :
                      (model.state === Camera.CAMERA_CAPTURE ?
                          (!model.image.empty ?
-                              "image://live/" + model.image.url
+                              model.image.url
                             :
-                              "image://live/" + model.rawImage.url)
+                              model.rawImage.url)
                         :
                           "qrc:/testchart.png"))
         visible: false

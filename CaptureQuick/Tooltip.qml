@@ -10,7 +10,7 @@ Rectangle {
     Text {
         id: text
         horizontalAlignment: Text.AlignHCenter
-        color: Qt.rgba(1,1,1,1)
+        color: "white"
         text: parent.text
         anchors.centerIn: parent
     }
