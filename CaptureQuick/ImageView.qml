@@ -158,7 +158,7 @@ Item {
             clip: true
             source: image.source
             mipmap: true
-            rotation: capture.uiCameraRotations[index]
+            rotation: model.state === Camera.CAMERA_PREVIEW ? capture.uiCameraRotations[index] : 0
         }
 
         Column {
