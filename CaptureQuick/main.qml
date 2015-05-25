@@ -21,6 +21,10 @@ ApplicationWindow {
         id: arrangementDesigner
     }
 
+    VideoCapture {
+        id: videoCapture
+    }
+
     function extractPathFromURL(url) {
         // More or less hacky way to extract the absolute path from
         // the URL that the FileDialog returns.
@@ -98,6 +102,7 @@ ApplicationWindow {
             title: qsTr("&Video")
             MenuItem {
                 text: qsTr("Capture")
+                onTriggered: videoCapture.show()
             }
             MenuItem {
                 text: qsTr("Download")
@@ -167,6 +172,7 @@ ApplicationWindow {
                 }
                 Button {
                     text: qsTr("Activate Live Preview Mode")
+                    enabled: capture.commonState !== Camera.CAMERA_PREVIEW
                     onClicked: {
                         for (var i = 0; i < capture.allCameras.length; ++i) {
                             capture.allCameras[i].state = Camera.CAMERA_PREVIEW
@@ -264,6 +270,7 @@ ApplicationWindow {
                 }
                 Button {
                     text: qsTr("Activate Capture Mode")
+                    enabled: capture.commonState !== Camera.CAMERA_CAPTURE
                     //id: button1
                     onClicked: {
                         for (var i = 0; i < capture.allCameras.length; ++i) {

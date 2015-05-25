@@ -7,5 +7,6 @@
         <file>EmptyImageView.qml</file>
         <file>ArrangementDesigner.qml</file>
         <file>ImageFormatTag.qml</file>
+        <file>VideoCapture.qml</file>
     </qresource>
 </RCC>

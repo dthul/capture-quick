@@ -32,12 +32,15 @@ void Capture::connect() {
 #endif
     m_gp_cameras = gpcontext.all_cameras();
     std::cout << "Found " << m_gp_cameras.size() << " cameras" << std::endl;
+    if (m_gp_cameras.size() == 0)
+        return;
     for (auto& gp_camera : m_gp_cameras) {
         Camera* camera = new Camera(gp_camera);
         m_cameras.append(camera);
         QObject::connect(camera, &Camera::imageChanged, this, &Capture::newImageCaptured);
         QObject::connect(camera, &Camera::rawImageChanged, this, &Capture::newImageCaptured);
         QObject::connect(camera, &Camera::nameChanged, this, &Capture::cameraNameChanged);
+        QObject::connect(camera, &Camera::stateChanged, this, &Capture::cameraStateChanged);
         camera->readConfig();
     }
     if (m_cameras.size() > 0) {
@@ -68,7 +71,7 @@ void Capture::disconnect() {
     // actually deleting the underlying Cameras, otherwise QML will hold pointers
     // to deleted objects which ends badly.
     // That's why we keep a copy of m_cameras here to be able to delete them later.
-    QList<Camera*> cameras(m_cameras);
+    const QList<Camera*> cameras(m_cameras);
     m_cameras.clear();
     m_ui_cameras.clear();
     m_all_camera_names_known = true;
@@ -83,10 +86,11 @@ void Capture::disconnect() {
     emit numColsChanged(m_num_cols);
     emit numCapturedChanged(m_num_captured);
 
-    // Destroys the remaining shared_ptrs to the gp::Cameras.
+    // Destroys the Camera objects and thereby the remaining shared_ptrs
+    // to the gp::Cameras.
     // This will actually release the cameras and takes some time
     // so do it in parallel.
-    // (instead of just doing m_cameras.clear())
+    // (instead of just doing cameras.clear())
     QThreadPool::globalInstance()->setMaxThreadCount(cameras.size());
     for (auto camera : cameras)
         QThreadPool::globalInstance()->start(new DeleteCameraTask(camera));
@@ -94,7 +98,6 @@ void Capture::disconnect() {
 }
 
 Capture::~Capture() {
-    // Don't emit signals from the destructor
     disconnect();
 }
 
@@ -188,9 +191,53 @@ void Capture::triggerAll() {
     QMetaObject::invokeMethod(m_triggerBox, "triggerAll", Qt::QueuedConnection);
 }
 
+void Capture::cameraStateChanged() {
+    emit commonStateChanged();
+}
+
+Camera::CameraState Capture::commonState() const {
+    bool allPreview = true;
+    bool allCapture = true;
+    for (Camera* camera : m_cameras) {
+        const Camera::CameraState state = camera->state();
+        switch (state) {
+        case Camera::CAMERA_CAPTURE:
+            allPreview = false;
+            break;
+        case Camera::CAMERA_PREVIEW:
+            allCapture = false;
+            break;
+        default:
+            allPreview = false;
+            allCapture = false;
+        }
+    }
+    if (allPreview)
+        return Camera::CAMERA_PREVIEW;
+    else if (allCapture)
+        return Camera::CAMERA_CAPTURE;
+    else
+        return Camera::CAMERA_NONE;
+}
+
+int Capture::countAllCameras(QQmlListProperty<Camera> *list) {
+    Capture *capture = qobject_cast<Capture*>(list->object);
+    if (capture) {
+        return capture->m_cameras.length();
+    }
+    return 0;
+}
+
+Camera* Capture::atAllCameras(QQmlListProperty<Camera> *list, int index) {
+    Capture *capture = qobject_cast<Capture*>(list->object);
+    if (capture && index >= 0 && index < capture->m_cameras.size()) {
+        return capture->m_cameras.at(index);
+    }
+    return nullptr;
+}
+
 QQmlListProperty<Camera> Capture::allCameras() {
-    // TODO: replace with production grade QQmlListProperty (see Qt documentation)
-    return QQmlListProperty<Camera>(this, m_cameras);
+    return QQmlListProperty<Camera>(this, 0, &Capture::countAllCameras, &Capture::atAllCameras);
 }
 
 int Capture::countUiCameras(QQmlListProperty<Camera> *list) {

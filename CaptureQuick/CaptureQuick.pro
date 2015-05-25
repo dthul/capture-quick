@@ -13,7 +13,8 @@ SOURCES += main.cpp \
     image.cpp \
     persist.cpp \
     triggerbox.cpp \
-    util.cpp
+    util.cpp \
+    videoimporter.cpp
 
 RESOURCES += qml.qrc \
     images.qrc \
@@ -34,7 +35,8 @@ HEADERS += \
     image.h \
     persist.h \
     triggerbox.h \
-    util.h
+    util.h \
+    videoimporter.h
 
 macx: {
 ICON = icon.icns

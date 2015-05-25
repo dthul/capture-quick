@@ -27,6 +27,7 @@ class Capture : public QObject
     Q_PROPERTY(int numRows READ numRows NOTIFY numRowsChanged)
     Q_PROPERTY(int numCols READ numCols NOTIFY numColsChanged)
     Q_PROPERTY(bool allConfigured READ allConfigured NOTIFY allConfiguredChanged)
+    Q_PROPERTY(Camera::CameraState commonState READ commonState NOTIFY commonStateChanged)
 public:
     explicit Capture(QObject *parent = 0);
     ~Capture();
@@ -46,8 +47,11 @@ public:
     int numRows() const;
     int numCols() const;
     bool allConfigured() const;
+    Camera::CameraState commonState() const;
     static int countUiCameras(QQmlListProperty<Camera> *list);
     static Camera* atUiCameras(QQmlListProperty<Camera> *list, int index);
+    static int countAllCameras(QQmlListProperty<Camera> *list);
+    static Camera* atAllCameras(QQmlListProperty<Camera> *list, int index);
 signals:
     void numCapturedChanged(const int numCaptured);
     void captureRootChanged(const QString& captureRoot);
@@ -58,6 +62,7 @@ signals:
     void numRowsChanged(const int numRows);
     void alert(QString message);
     void allConfiguredChanged(bool configured);
+    void commonStateChanged();
     void allCamerasChanged();
     void uiCamerasChanged();
     void uiCameraRotationsChanged();
@@ -74,6 +79,7 @@ public slots:
 private slots:
     void newImageCaptured(Image* image);
     void cameraNameChanged(const QString& name);
+    void cameraStateChanged();
 private:
     void recalculateGridSize();
     QString serializeCameraArrangement();
