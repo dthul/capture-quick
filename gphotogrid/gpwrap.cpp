@@ -334,6 +334,7 @@ std::vector<char> Camera::read_image(const std::string& folder, const std::strin
 
 void Camera::save_file(const std::string& folder, const std::string& name,
 		const std::string& localfile, bool delete_from_cam) {
+    std::lock_guard<std::mutex> g(mutex);
 	int ret;
 
 	// TODO smart handle
