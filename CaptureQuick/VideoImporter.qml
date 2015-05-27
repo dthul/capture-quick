@@ -35,15 +35,27 @@ Window {
                 text: "clips from each camera"
             }
         }
-        Button {
-            text: "Save to disk"
-            onClicked: videoimporter.save()
+        Row {
+            Button {
+                text: videoimporter.importRunning ? "Saving..." : "Save to disk"
+                enabled: !videoimporter.importRunning
+                onClicked: videoimporter.save()
+            }
+            BusySpinner {
+                running: videoimporter.importRunning
+            }
         }
     }
 
     Connections {
         target: videoimporter
         onNumVideosChanged: numVideosSpinbox.value = videoimporter.numVideos
+    }
+
+    onClosing: {
+        if (videoimporter.importRunning) {
+            close.accepted = false
+        }
     }
 
     /*ColumnLayout {

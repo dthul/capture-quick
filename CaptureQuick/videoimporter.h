@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QMutex>
 #include <QObject>
 #include <QQmlListProperty>
 #include <QSharedPointer>
@@ -42,6 +43,7 @@ class VideoImporter : public QObject
     Q_PROPERTY(QQmlListProperty<ImportInfo> importInfos READ importInfos NOTIFY importInfosChanged)
     Q_PROPERTY(uint16_t numVideos READ numVideos WRITE setNumVideos NOTIFY numVideosChanged)
     Q_PROPERTY(uint16_t minNumVideos READ minNumVideos NOTIFY minNumVideosChanged)
+    Q_PROPERTY(bool importRunning READ importRunning NOTIFY importRunningChanged)
 public:
     explicit VideoImporter(Capture *const capture, QObject *parent = 0);
     ~VideoImporter();
@@ -52,16 +54,23 @@ public:
     uint16_t numVideos() const;
     void setNumVideos(const uint16_t new_num);
     uint16_t minNumVideos() const;
+    bool importRunning() const;
 signals:
     void importInfosChanged();
     void numVideosChanged(const uint16_t new_num);
     void minNumVideosChanged(const uint16_t new_min_num);
+    void importRunningChanged(const bool importRunning);
 public slots:
     void refresh();
     void save();
 private:
+    void saveDone();
     Capture *const m_capture;
     QList<QSharedPointer<ImportInfo>> m_import_infos;
     uint16_t m_num_videos; // How many most recent videos should be downloaded?
     uint16_t m_min_num_videos; // How many videos does the camera with the fewest videos contain?
+    bool m_import_running;
+    uint16_t m_num_saves_missing;
+    mutable QMutex m_mutex;
+    friend class SaveImportInfoTask;
 };

@@ -5,6 +5,9 @@
 #include <iostream>
 #include <limits>
 
+#include <QMutexLocker>
+#include <QRunnable>
+
 #include "camera.h"
 #include "persist.h"
 
@@ -37,7 +40,8 @@ VideoImporter::VideoImporter(Capture *const capture, QObject *parent) :
     QObject(parent),
     m_capture(capture),
     m_num_videos(1),
-    m_min_num_videos(0) {}
+    m_min_num_videos(0),
+    m_import_running(false) {}
 
 VideoImporter::~VideoImporter()
 {
@@ -84,6 +88,11 @@ QQmlListProperty<ImportInfo> VideoImporter::importInfos() {
 }
 
 void VideoImporter::refresh() {
+    {
+        QMutexLocker locker(&m_mutex);
+        if (m_import_running)
+            return;
+    }
     QList<Camera*> allCameras = m_capture->allCamerasAsList();
     // Don't destroy the ImportInfos in m_import_infos yet, but after the emit
     QList<QSharedPointer<ImportInfo>> tmp = m_import_infos;
@@ -126,7 +135,50 @@ void VideoImporter::refresh() {
     tmp.clear();
 }
 
-void VideoImporter::save() {
-    for (auto importInfo : m_import_infos)
+class SaveImportInfoTask : public QRunnable
+{
+public:
+    SaveImportInfoTask(VideoImporter *const videoImporter, QSharedPointer<ImportInfo> importInfo) :
+        videoImporter(videoImporter),
+        importInfo(importInfo) {}
+private:
+    void run() {
         Persist::getInstance()->save(importInfo.data());
+        videoImporter->saveDone();
+    }
+    VideoImporter *videoImporter;
+    QSharedPointer<ImportInfo> importInfo;
+};
+
+void VideoImporter::save() {
+    if (m_import_running)
+        return;
+    if (QThreadPool::globalInstance()->maxThreadCount() < m_import_infos.length())
+        QThreadPool::globalInstance()->setMaxThreadCount(m_import_infos.length());
+    {
+        QMutexLocker locker(&m_mutex);
+        m_num_saves_missing = m_import_infos.length();
+        if (m_num_saves_missing == 0)
+            return;
+        m_import_running = true;
+        for (auto importInfo : m_import_infos)
+            QThreadPool::globalInstance()->start(new SaveImportInfoTask(this, importInfo));
+    }
+    emit importRunningChanged(m_import_running);
+    // QThreadPool::globalInstance()->waitForDone(8 * 1000);
+}
+
+void VideoImporter::saveDone() {
+    {
+        QMutexLocker locker(&m_mutex);
+        --m_num_saves_missing;
+        if (m_num_saves_missing == 0)
+            m_import_running = false;
+    }
+    emit importRunningChanged(m_import_running);
+}
+
+bool VideoImporter::importRunning() const {
+    QMutexLocker locker(&m_mutex); // Is this mutex lock needed to establish memory "consistency"?
+    return m_import_running;
 }

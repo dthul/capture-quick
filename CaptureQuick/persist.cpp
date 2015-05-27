@@ -42,7 +42,7 @@ bool Persist::checkFileName(const FileName& fileName) {
 }
 
 void Persist::save(Image* const image) {
-    QMutexLocker locker(&m_mutex);
+    //QMutexLocker locker(&m_mutex);
     if (image->saved() || !image->camera() || image->empty())
         return;
     const FileName fileName = fileNameFor(image);
@@ -54,7 +54,7 @@ void Persist::save(Image* const image) {
 }
 
 void Persist::save(ImportInfo* const importInfo) {
-    QMutexLocker locker(&m_mutex);
+    //QMutexLocker locker(&m_mutex);
     const bool delete_from_cam = false; // TODO: make configurable
     const QList<FileName>  fileNames = fileNamesFor(importInfo);
     const QList<FileInfo*> fileInfos = importInfo->fileInfosAsList();
