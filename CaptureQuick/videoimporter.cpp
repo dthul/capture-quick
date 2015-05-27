@@ -110,6 +110,7 @@ void VideoImporter::refresh() {
             importInfo->m_file_infos.append(importFileInfo);
         }
     };
+    // TODO: make this loop parallel since reading the camera's file system takes some time
     for (auto camera : allCameras) {
         QSharedPointer<ImportInfo> info(new ImportInfo(camera));
 
@@ -142,9 +143,18 @@ public:
         videoImporter(videoImporter),
         importInfo(importInfo) {}
 private:
+    struct SaveDoneNotifier {
+        SaveDoneNotifier(VideoImporter *videoImporter) : videoImporter(videoImporter) {}
+        ~SaveDoneNotifier() { videoImporter->saveDone(); }
+        VideoImporter *videoImporter;
+    };
+
     void run() {
+        // Since C++ does not support finally blocks to execute
+        // videoImporter->saveDone even in case of an exception
+        // we use the RAII principle to make sure that it gets called.
+        SaveDoneNotifier notifier(videoImporter);
         Persist::getInstance()->save(importInfo.data());
-        videoImporter->saveDone();
     }
     VideoImporter *videoImporter;
     QSharedPointer<ImportInfo> importInfo;

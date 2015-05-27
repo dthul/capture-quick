@@ -21,6 +21,9 @@ Window {
     }
 
     Column {
+        Label {
+            text: "There are at least " + videoimporter.minNumVideos + " on each camera."
+        }
         Row {
             Label {
                 text: "Download the latest"
@@ -34,6 +37,10 @@ Window {
             Label {
                 text: "clips from each camera"
             }
+        }
+        Label {
+            text: "Warning: there are not at least " + videoimporter.numVideos + " videos on each camera"
+            visible: videoimporter.numVideos > videoimporter.minNumVideos
         }
         Row {
             Button {
