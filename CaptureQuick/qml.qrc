@@ -8,5 +8,6 @@
         <file>ArrangementDesigner.qml</file>
         <file>ImageFormatTag.qml</file>
         <file>VideoCapture.qml</file>
+        <file>VideoImporter.qml</file>
     </qresource>
 </RCC>

@@ -220,6 +220,10 @@ Camera::CameraState Capture::commonState() const {
         return Camera::CAMERA_NONE;
 }
 
+QList<Camera*> Capture::allCamerasAsList() {
+    return m_cameras;
+}
+
 int Capture::countAllCameras(QQmlListProperty<Camera> *list) {
     Capture *capture = qobject_cast<Capture*>(list->object);
     if (capture) {

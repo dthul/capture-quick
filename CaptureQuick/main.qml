@@ -25,6 +25,10 @@ ApplicationWindow {
         id: videoCapture
     }
 
+    VideoImporter {
+        id: videoImporter
+    }
+
     function extractPathFromURL(url) {
         // More or less hacky way to extract the absolute path from
         // the URL that the FileDialog returns.
@@ -106,6 +110,7 @@ ApplicationWindow {
             }
             MenuItem {
                 text: qsTr("Download")
+                onTriggered: videoImporter.show()
             }
         }
     }

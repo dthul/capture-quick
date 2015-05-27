@@ -15,6 +15,7 @@
 #include "image.h"
 #include "liveimageprovider.h"
 #include "util.h"
+#include "videoimporter.h"
 
 int main(int argc, char *argv[])
 {
@@ -45,20 +46,25 @@ int main(int argc, char *argv[])
     // Makes the Camera class's Enum available to QML
     qmlRegisterUncreatableType<Camera>("CaptureQuick", 0, 1, "Camera", "Cameras can't be instantiated from QML");
     qmlRegisterUncreatableType<Image>("CaptureQuick", 0, 1, "CQImage", "Images can't be instantiated from QML");
+    qmlRegisterUncreatableType<ImportInfo>("CaptureQuick", 0, 1, "ImportInfo", "ImportInfo can't be instantiated from QML");
+    qmlRegisterUncreatableType<FileInfo>("CaptureQuick", 0, 1, "FileInfo", "FileInfo can't be instantiated from QML");
     // Register meta types to make them usable in signal / slot connections
     qRegisterMetaType<QFileInfo>("QFileInfo");
     qRegisterMetaType<QSharedPointer<Image>>("QSharedPointer<Image>");
     qRegisterMetaType<Camera::CameraState>("CameraState");
+    qRegisterMetaType<uint16_t>("uint16_t");
 
     QQmlApplicationEngine engine;
 
     Capture capture;
+    VideoImporter videoimporter(&capture);
 
     // will be freed by Qt
     LiveImageProvider *liveImgProvider = LiveImageProvider::getInstance();
     engine.addImageProvider("live", liveImgProvider);
 
     engine.rootContext()->setContextProperty("capture", &capture);
+    engine.rootContext()->setContextProperty("videoimporter", &videoimporter);
 
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 

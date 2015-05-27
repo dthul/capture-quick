@@ -6,6 +6,7 @@
 #include <QString>
 
 #include "image.h"
+#include "videoimporter.h"
 
 class Persist
 {
@@ -13,6 +14,7 @@ class Persist
 public:
     static Persist* getInstance();
     void save(Image* const image);
+    void save(ImportInfo* const importInfo);
     void next();
 private:
     struct FileName {
@@ -21,6 +23,8 @@ private:
         QString path() const;
     };
     FileName fileNameFor(Image* const image);
+    QList<FileName> fileNamesFor(ImportInfo* const importInfo);
+    bool checkFileName(const FileName& fileName);
     static Persist* persist;
     qint64 m_time;
     static QMutex s_mutex;

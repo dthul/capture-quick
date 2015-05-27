@@ -41,6 +41,7 @@ public:
     void setAutoSave(bool autoSave);
     void setSaveJpeg(bool saveJpeg);
     void setSaveRaw(bool saveRaw);
+    QList<Camera*> allCamerasAsList();
     QQmlListProperty<Camera> allCameras();
     QQmlListProperty<Camera> uiCameras();
     QList<int> uiCameraRotations();
