@@ -239,7 +239,7 @@ ApplicationWindow {
 
                         checked: capture.saveJpeg
                         onCheckedChanged: {
-                            if (checked != capture.saveJpeg) {
+                            if (checked !== capture.saveJpeg) {
                                 capture.saveJpeg = checked;
                             }
                         }
@@ -252,7 +252,7 @@ ApplicationWindow {
 
                         checked: capture.saveRaw
                         onCheckedChanged: {
-                            if (checked != capture.saveRaw) {
+                            if (checked !== capture.saveRaw) {
                                 capture.saveRaw = checked;
                             }
                         }
@@ -264,7 +264,7 @@ ApplicationWindow {
 
                     checked: capture.autoSave
                     onCheckedChanged: {
-                        if (checked != capture.autoSave) {
+                        if (checked !== capture.autoSave) {
                             capture.autoSave = checked;
                         }
                     }

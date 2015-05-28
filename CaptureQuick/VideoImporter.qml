@@ -1,10 +1,15 @@
 import QtQuick 2.4
 import QtQuick.Controls 1.3
+import QtQuick.Dialogs 1.2
 import QtQuick.Layouts 1.1
 import QtQuick.Window 2.2
 
+import "qrc:/fontawesome.js" as FontAwesome
+
 Window {
     modality: Qt.ApplicationModal
+
+    title: "Download Videos from Cameras"
 
     width: 550
     height: 300
@@ -20,6 +25,17 @@ Window {
         }
     }
 
+    FileDialog {
+        id: videoRootDialog
+        title: qsTr("Choose a location for the captured videos")
+        folder: videoimporter.videoRoot
+        selectFolder: true
+        onAccepted: {
+            var path = extractPathFromURL(this.folder)
+            videoimporter.videoRoot = path
+        }
+    }
+
     Column {
         anchors.margins: 10
         anchors.left: parent.left
@@ -28,6 +44,35 @@ Window {
         spacing: 10
         Label {
             text: "There are at least " + videoimporter.minNumVideos + " clips on each camera."
+        }
+        Label {
+            text: "Destination directory:"
+        }
+        RowLayout {
+            Text {
+                id: settings
+                font.pointSize: 15
+                font.family: "FontAwesome"
+                text: FontAwesome.Icon.Cog
+                MouseArea {
+                    cursorShape: Qt.PointingHandCursor
+                    anchors.fill: parent
+                    onClicked: videoRootDialog.open()
+                }
+            }
+            Text {
+                text: videoimporter.videoRoot
+                elide: Text.ElideLeft
+            }
+        }
+        CheckBox {
+            text: "Delete clips from camera"
+            checked: videoimporter.deleteFromCamera
+            onCheckedChanged: {
+                if (checked !== videoimporter.deleteFromCamera) {
+                    videoimporter.deleteFromCamera = checked;
+                }
+            }
         }
         Row {
             spacing: 5

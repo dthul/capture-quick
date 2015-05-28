@@ -60,6 +60,30 @@ void VideoImporter::setNumVideos(const uint16_t new_num) {
     refresh();
 }
 
+bool VideoImporter::deleteFromCamera() const {
+    QSettings settings;
+    return settings.value("videos/delete_from_camera", false).toBool();
+}
+
+void VideoImporter::setDeleteFromCamera(const bool newDeleteFromCamera) {
+    QSettings settings;
+    settings.setValue("videos/delete_from_camera", newDeleteFromCamera);
+    emit deleteFromCameraChanged(newDeleteFromCamera);
+}
+
+QString VideoImporter::videoRoot() const {
+    QSettings settings;
+    const QString defaultVideoLocation =
+            QStandardPaths::writableLocation(QStandardPaths::MoviesLocation);
+    return settings.value("videos/root_path", defaultVideoLocation).toString();
+}
+
+void VideoImporter::setVideoRoot(const QString& newVideoRoot) {
+    QSettings settings;
+    settings.setValue("videos/root_path", newVideoRoot);
+    emit videoRootChanged(newVideoRoot);
+}
+
 uint16_t VideoImporter::minNumVideos() const {
     return m_min_num_videos;
 }

@@ -44,6 +44,8 @@ class VideoImporter : public QObject
     Q_PROPERTY(uint16_t numVideos READ numVideos WRITE setNumVideos NOTIFY numVideosChanged)
     Q_PROPERTY(uint16_t minNumVideos READ minNumVideos NOTIFY minNumVideosChanged)
     Q_PROPERTY(bool importRunning READ importRunning NOTIFY importRunningChanged)
+    Q_PROPERTY(QString videoRoot READ videoRoot WRITE setVideoRoot NOTIFY videoRootChanged)
+    Q_PROPERTY(bool deleteFromCamera READ deleteFromCamera WRITE setDeleteFromCamera NOTIFY deleteFromCameraChanged)
 public:
     explicit VideoImporter(Capture *const capture, QObject *parent = 0);
     ~VideoImporter();
@@ -55,11 +57,17 @@ public:
     void setNumVideos(const uint16_t new_num);
     uint16_t minNumVideos() const;
     bool importRunning() const;
+    QString videoRoot() const;
+    void setVideoRoot(const QString& newVideoRoot);
+    bool deleteFromCamera() const;
+    void setDeleteFromCamera(const bool newDeleteFromCamera);
 signals:
     void importInfosChanged();
     void numVideosChanged(const uint16_t new_num);
     void minNumVideosChanged(const uint16_t new_min_num);
     void importRunningChanged(const bool importRunning);
+    void videoRootChanged(const QString& newVideoRoot);
+    void deleteFromCameraChanged(const bool newDeleteFromCamera);
 public slots:
     void refresh();
     void save();

@@ -55,7 +55,8 @@ void Persist::save(Image* const image) {
 
 void Persist::save(ImportInfo* const importInfo) {
     //QMutexLocker locker(&m_mutex);
-    const bool delete_from_cam = false; // TODO: make configurable
+    QSettings settings;
+    const bool delete_from_cam = settings.value("videos/delete_from_camera", false).toBool();
     const QList<FileName>  fileNames = fileNamesFor(importInfo);
     const QList<FileInfo*> fileInfos = importInfo->fileInfosAsList();
     Camera* const camera = importInfo->camera();

@@ -6,6 +6,8 @@ import QtQuick.Window 2.2
 Window {
     modality: Qt.ApplicationModal
 
+    title: "Capture Videos"
+
     width: 550
     height: 300
     minimumWidth: 400
@@ -76,7 +78,7 @@ Window {
                 textFormat: Text.StyledText
                 wrapMode: Text.Wrap
                 Layout.fillWidth: true
-                text: "To start capturing video, follow these steps first:<br>
+                text: "To start capturing videos, follow these steps:<br>
                         <ul>
                             <li>disconnect the cameras from USB</li>
                             <li>switch them to OFF</li>
