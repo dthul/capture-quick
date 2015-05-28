@@ -41,7 +41,8 @@ VideoImporter::VideoImporter(Capture *const capture, QObject *parent) :
     m_capture(capture),
     m_num_videos(1),
     m_min_num_videos(0),
-    m_import_running(false) {}
+    m_import_running(false),
+    m_refreshing(false) {}
 
 VideoImporter::~VideoImporter() {}
 
@@ -108,18 +109,43 @@ QQmlListProperty<ImportInfo> VideoImporter::importInfos() {
     return QQmlListProperty<ImportInfo>(this, 0, &VideoImporter::countImportInfos, &VideoImporter::atImportInfos);
 }
 
-void VideoImporter::refresh() {
-    {
-        QMutexLocker locker(&m_mutex);
-        if (m_import_running)
-            return;
+class RefreshTask : public QRunnable
+{
+public:
+    RefreshTask(VideoImporter *const videoImporter, Camera *const camera) :
+        videoImporter(videoImporter),
+        camera(camera) {}
+private:
+    struct RefreshDoneNotifier {
+        RefreshDoneNotifier(VideoImporter *videoImporter, QSharedPointer<ImportInfo> importInfo) :
+            videoImporter(videoImporter),
+            importInfo(importInfo) {}
+        ~RefreshDoneNotifier() { videoImporter->refreshDone(importInfo); }
+        VideoImporter *videoImporter;
+        QSharedPointer<ImportInfo> importInfo;
+    };
+
+    void run() {
+        QSharedPointer<ImportInfo> info(new ImportInfo(camera));
+
+        // Since C++ does not support finally blocks to execute
+        // videoImporter->refreshDone even in case of an exception
+        // we use the RAII principle to make sure that it gets called.
+        RefreshDoneNotifier notifier(videoImporter, info);
+
+        // find all video files on the camera and store their paths in "info"
+        camera->gp_camera()->for_each_file(std::bind(filterVideos, info.data(), std::placeholders::_1));
+
+        // sort the video files by their index (which is initialized to their creation time) in descending order
+        auto fileInfoComparator = [](FileInfo* info1, FileInfo* info2) -> bool { return info1->index > info2->index; };
+        std::sort(info->m_file_infos.begin(), info->m_file_infos.end(), fileInfoComparator);
+
+        // shorten the QList to the number of requested videos
+        /*if (info->m_file_infos.length() > m_num_videos)
+            info->m_file_infos.erase(info->m_file_infos.begin() + m_num_videos, info->m_file_infos.end());*/
     }
-    QList<Camera*> allCameras = m_capture->allCamerasAsList();
-    // Don't destroy the ImportInfos in m_import_infos yet, but after the emit
-    QList<QSharedPointer<ImportInfo>> tmp = m_import_infos;
-    m_import_infos.clear();
-    m_min_num_videos = std::numeric_limits<uint16_t>::max();
-    auto filterVideos = [](ImportInfo *const importInfo, const gp::Camera::FileInfo& fileInfo) -> void {
+
+    static void filterVideos(ImportInfo *const importInfo, const gp::Camera::FileInfo& fileInfo) {
         QString const fileName = QString::fromStdString(fileInfo.name);
         if (fileName.toLower().endsWith(".mov")) {
             QString const folder = QString::fromStdString(fileInfo.folder);
@@ -130,33 +156,52 @@ void VideoImporter::refresh() {
             importFileInfo->index = fileInfo.time;
             importInfo->m_file_infos.append(importFileInfo);
         }
-    };
-    // TODO: make this loop parallel since reading the camera's file system takes some time
-    for (auto camera : allCameras) {
-        QSharedPointer<ImportInfo> info(new ImportInfo(camera));
-
-        // find all video files on the camera and store their paths in "info"
-        camera->gp_camera()->for_each_file(std::bind(filterVideos, info.data(), std::placeholders::_1));
-
-        // update the minimum number of videos on each camera
-        if (info->m_file_infos.length() < m_min_num_videos)
-            m_min_num_videos = info->m_file_infos.length();
-
-        // sort the video files by their index (which is initialized to their creation time) in descending order
-        auto fileInfoComparator = [](FileInfo* info1, FileInfo* info2) -> bool { return info1->index > info2->index; };
-        std::sort(info->m_file_infos.begin(), info->m_file_infos.end(), fileInfoComparator);
-
-        // shorten the QList to the number of requested videos
-        if (info->m_file_infos.length() > m_num_videos)
-            info->m_file_infos.erase(info->m_file_infos.begin() + m_num_videos, info->m_file_infos.end());
-
-        m_import_infos.append(info);
     }
-    if (allCameras.length() == 0)
-        m_min_num_videos = 0;
+
+    VideoImporter *videoImporter;
+    Camera *camera;
+};
+
+void VideoImporter::refreshDone(QSharedPointer<ImportInfo> importInfo) {
+    // Don't destroy the ImportInfos in m_import_infos yet, but after the emit
+    auto tmp = m_import_infos;
+    {
+        QMutexLocker locker(&m_mutex);
+        m_refreshing_import_infos.append(importInfo);
+        --m_num_refreshs_missing;
+        // update the minimum number of images on each camera
+        if (importInfo->m_file_infos.length() < m_min_num_videos)
+            m_min_num_videos = importInfo->m_file_infos.length();
+        if (m_num_refreshs_missing == 0) {
+            m_import_infos = m_refreshing_import_infos;
+            m_refreshing = false;
+        }
+    }
     emit importInfosChanged();
     emit minNumVideosChanged(m_min_num_videos);
-    tmp.clear();
+    emit refreshingChanged(m_refreshing);
+}
+
+void VideoImporter::refresh() {
+    QMutexLocker locker(&m_mutex);
+    if (m_import_running || m_refreshing)
+        return;
+    QList<Camera*> allCameras = m_capture->allCamerasAsList();
+    m_num_refreshs_missing = allCameras.size();
+    if (m_num_refreshs_missing == 0) {
+        m_min_num_videos = 0;
+        emit minNumVideosChanged(m_min_num_videos);
+        return;
+    }
+    if (QThreadPool::globalInstance()->maxThreadCount() < m_num_refreshs_missing)
+        QThreadPool::globalInstance()->setMaxThreadCount(m_num_refreshs_missing);
+    m_refreshing = true;
+    m_refreshing_import_infos.clear();
+    m_min_num_videos = std::numeric_limits<uint16_t>::max();
+
+    for (auto camera : allCameras)
+        QThreadPool::globalInstance()->start(new RefreshTask(this, camera));
+    emit refreshingChanged(m_refreshing);
 }
 
 class SaveImportInfoTask : public QRunnable
@@ -184,15 +229,15 @@ private:
 };
 
 void VideoImporter::save() {
-    if (m_import_running)
-        return;
-    if (QThreadPool::globalInstance()->maxThreadCount() < m_import_infos.length())
-        QThreadPool::globalInstance()->setMaxThreadCount(m_import_infos.length());
     {
         QMutexLocker locker(&m_mutex);
+        if (m_import_running)
+            return;
         m_num_saves_missing = m_import_infos.length();
         if (m_num_saves_missing == 0)
             return;
+        if (QThreadPool::globalInstance()->maxThreadCount() < m_import_infos.length())
+            QThreadPool::globalInstance()->setMaxThreadCount(m_import_infos.length());
         m_import_running = true;
         for (auto importInfo : m_import_infos)
             QThreadPool::globalInstance()->start(new SaveImportInfoTask(this, importInfo));
@@ -214,4 +259,9 @@ void VideoImporter::saveDone() {
 bool VideoImporter::importRunning() const {
     QMutexLocker locker(&m_mutex); // Is this mutex lock needed to establish memory "consistency"?
     return m_import_running;
+}
+
+bool VideoImporter::refreshing() const {
+    QMutexLocker locker(&m_mutex); // Is this mutex lock needed to establish memory "consistency"?
+    return m_refreshing;
 }

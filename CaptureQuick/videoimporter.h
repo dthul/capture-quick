@@ -35,6 +35,7 @@ private:
     QList<FileInfo*> m_file_infos;
     Camera* const m_camera;
     friend class VideoImporter;
+    friend class RefreshTask;
 };
 
 class VideoImporter : public QObject
@@ -44,6 +45,7 @@ class VideoImporter : public QObject
     Q_PROPERTY(uint16_t numVideos READ numVideos WRITE setNumVideos NOTIFY numVideosChanged)
     Q_PROPERTY(uint16_t minNumVideos READ minNumVideos NOTIFY minNumVideosChanged)
     Q_PROPERTY(bool importRunning READ importRunning NOTIFY importRunningChanged)
+    Q_PROPERTY(bool refreshing READ refreshing NOTIFY refreshingChanged)
     Q_PROPERTY(QString videoRoot READ videoRoot WRITE setVideoRoot NOTIFY videoRootChanged)
     Q_PROPERTY(bool deleteFromCamera READ deleteFromCamera WRITE setDeleteFromCamera NOTIFY deleteFromCameraChanged)
 public:
@@ -57,6 +59,7 @@ public:
     void setNumVideos(const uint16_t new_num);
     uint16_t minNumVideos() const;
     bool importRunning() const;
+    bool refreshing() const;
     QString videoRoot() const;
     void setVideoRoot(const QString& newVideoRoot);
     bool deleteFromCamera() const;
@@ -66,6 +69,7 @@ signals:
     void numVideosChanged(const uint16_t new_num);
     void minNumVideosChanged(const uint16_t new_min_num);
     void importRunningChanged(const bool importRunning);
+    void refreshingChanged(const bool newRefreshing);
     void videoRootChanged(const QString& newVideoRoot);
     void deleteFromCameraChanged(const bool newDeleteFromCamera);
 public slots:
@@ -73,12 +77,17 @@ public slots:
     void save();
 private:
     void saveDone();
+    void refreshDone(QSharedPointer<ImportInfo> importInfo);
     Capture *const m_capture;
     QList<QSharedPointer<ImportInfo>> m_import_infos;
+    QList<QSharedPointer<ImportInfo>> m_refreshing_import_infos;
     uint16_t m_num_videos; // How many most recent videos should be downloaded?
     uint16_t m_min_num_videos; // How many videos does the camera with the fewest videos contain?
     bool m_import_running;
+    bool m_refreshing;
     uint16_t m_num_saves_missing;
+    uint16_t m_num_refreshs_missing;
     mutable QMutex m_mutex;
     friend class SaveImportInfoTask;
+    friend class RefreshTask;
 };
