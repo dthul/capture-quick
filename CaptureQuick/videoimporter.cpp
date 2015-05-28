@@ -43,11 +43,7 @@ VideoImporter::VideoImporter(Capture *const capture, QObject *parent) :
     m_min_num_videos(0),
     m_import_running(false) {}
 
-VideoImporter::~VideoImporter()
-{
-    m_thread.quit();
-    m_thread.wait(8000);
-}
+VideoImporter::~VideoImporter() {}
 
 uint16_t VideoImporter::numVideos() const {
     return m_num_videos;
