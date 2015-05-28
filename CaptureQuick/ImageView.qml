@@ -403,7 +403,11 @@ Item {
                 }
                 Button {
                     text: "Trigger"
-                    onClicked: model.trigger()
+                    enabled: model.state === Camera.CAMERA_CAPTURE
+                    onClicked: {
+                        model.clearLatestImage()
+                        model.trigger()
+                    }
                 }
                 Button {
                     text: "Broadcast settings"

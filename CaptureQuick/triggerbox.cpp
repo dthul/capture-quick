@@ -39,6 +39,8 @@ TriggerBox::TriggerBox(QObject *parent) :
 TriggerBox::~TriggerBox()
 {
     disconnect();
+    m_thread.quit();
+    m_thread.wait(2000);
 }
 
 bool TriggerBox::connect() {

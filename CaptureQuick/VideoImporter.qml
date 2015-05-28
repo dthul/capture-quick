@@ -21,34 +21,46 @@ Window {
     }
 
     Column {
+        anchors.margins: 10
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: 10
         Label {
-            text: "There are at least " + videoimporter.minNumVideos + " on each camera."
+            text: "There are at least " + videoimporter.minNumVideos + " clips on each camera."
         }
         Row {
+            spacing: 5
             Label {
+                anchors.verticalCenter: parent.verticalCenter
                 text: "Download the latest"
             }
             SpinBox {
                 id: numVideosSpinbox
+                anchors.verticalCenter: parent.verticalCenter
                 minimumValue: 1
                 maximumValue: Math.max(videoimporter.minNumVideos, 1)
                 onValueChanged: videoimporter.numVideos = value
             }
             Label {
+                anchors.verticalCenter: parent.verticalCenter
                 text: "clips from each camera"
             }
         }
-        Label {
+        Text {
+            font.bold: true
             text: "Warning: there are not at least " + videoimporter.numVideos + " videos on each camera"
             visible: videoimporter.numVideos > videoimporter.minNumVideos
         }
         Row {
             Button {
+                id: saveButton
                 text: videoimporter.importRunning ? "Saving..." : "Save to disk"
                 enabled: !videoimporter.importRunning
                 onClicked: videoimporter.save()
             }
             BusySpinner {
+                height: saveButton.height
                 running: videoimporter.importRunning
             }
         }
