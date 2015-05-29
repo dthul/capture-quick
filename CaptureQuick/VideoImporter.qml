@@ -36,14 +36,32 @@ Window {
         }
     }
 
+    Row {
+        visible: videoimporter.refreshing
+        anchors.margins: 10
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: 10
+        Text {
+            id: infoText
+            text: "Please stand by while the cameras' filesystems are being read"
+        }
+        BusySpinner {
+            height: infoText.height
+            running: true
+        }
+    }
+
     Column {
+        visible: !videoimporter.refreshing
         anchors.margins: 10
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
         spacing: 10
         Label {
-            text: "There are at least " + videoimporter.minNumVideos + " clips on each camera."
+            text: "There are at least " + videoimporter.minNumVideos + " and at most " + videoimporter.maxNumVideos + " clips on each camera."
         }
         Label {
             text: "Destination directory:"
@@ -55,6 +73,7 @@ Window {
                 font.family: "FontAwesome"
                 text: FontAwesome.Icon.Cog
                 MouseArea {
+                    enabled: !videoimporter.importRunning
                     cursorShape: Qt.PointingHandCursor
                     anchors.fill: parent
                     onClicked: videoRootDialog.open()
@@ -66,7 +85,8 @@ Window {
             }
         }
         CheckBox {
-            text: "Delete clips from camera"
+            text: "Delete downloaded clips from camera"
+            enabled: !videoimporter.importRunning
             checked: videoimporter.deleteFromCamera
             onCheckedChanged: {
                 if (checked !== videoimporter.deleteFromCamera) {
@@ -83,8 +103,9 @@ Window {
             SpinBox {
                 id: numVideosSpinbox
                 anchors.verticalCenter: parent.verticalCenter
+                enabled: !videoimporter.importRunning
                 minimumValue: 1
-                maximumValue: Math.max(videoimporter.minNumVideos, 1)
+                maximumValue: Math.max(videoimporter.maxNumVideos, 1)
                 onValueChanged: videoimporter.numVideos = value
             }
             Label {
@@ -109,6 +130,10 @@ Window {
                 running: videoimporter.importRunning
             }
         }
+        ProgressBar {
+            visible: videoimporter.importRunning
+            value: videoimporter.importProgress
+        }
     }
 
     Connections {
@@ -121,67 +146,5 @@ Window {
             close.accepted = false
         }
     }
-
-    /*ColumnLayout {
-        anchors.fill: parent
-
-        ListView {
-            id: importInfoView
-            model: videoimporter.importInfos
-            anchors.fill: parent
-            delegate: ListView {
-                id: fileNameView
-                model: fileInfos
-                anchors.fill: parent
-                delegate: Text {
-                    text: fileName + ": " + fileNameView.model.length + ": " + fileNameView.count + console.log(fileName)
-                }
-            }
-        }
-    }*/
-
-    /*ColumnLayout {
-        anchors.fill: parent
-        ListView {
-            anchors.fill: parent
-            id: wtf1
-            model: ListModel {
-                ListElement {
-                    fileInfos: [
-                        ListElement { fileName: "1" },
-                        ListElement { fileName: "2" },
-                        ListElement { fileName: "3" }
-                    ]
-                }
-            }
-
-            delegate: ListView {
-                anchors.fill: parent
-                id: wtf2
-                model: fileInfos
-                delegate: Text {
-                    text: fileName + console.log(fileName)
-                }
-            }
-        }
-    }*/
-
-    /*ColumnLayout {
-        id: layout1
-        anchors.fill: parent
-        ListView {
-            anchors.fill: parent
-            id: wtf1
-            model: [[3, 4, 5, 6]]
-            delegate: ListView {
-                anchors.fill: parent
-                id: wtf2
-                model: wtf1.model[index]
-                delegate: Text {
-                    text: wtf2.model[index]
-                }
-            }
-        }
-    }*/
 
 }
