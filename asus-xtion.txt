@@ -1,6 +1,0 @@
-for asus xtion pro:
-
-https://github.com/OpenNI/OpenNI
-https://github.com/PrimeSense/Sensor
-
-Try SimpleViewer or NiViewer.
