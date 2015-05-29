@@ -1,0 +1,22 @@
+# Requirements
+
+  * Qt5
+  * libgphoto2
+
+
+# Install steps
+
+## Linux and Mac OS
+
+Create a build directory and execute cmake, then make.
+Make sure that the libgphoto2 and libgphoto2_port headers and libraries can be
+found and linked since the provieded CMakeLists.txt does not check their
+presence.
+
+If your Qt5 installation is in a non-standard path you can call for example
+
+$ Qt5_DIR=/Users/dthul/Qt/5.4/clang_64/lib/cmake/Qt5 cmake ..
+
+## Windows
+
+Create a Visual Studio project with CMake and compile it.
