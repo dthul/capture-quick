@@ -37,6 +37,7 @@ install_name_tool command (adjust paths / versions to your needs):
 
 cd to the bundle's Frameworks folder, then:
 
+```
 mkdir -p libgphoto2/2.5.7
 cp /opt/local/lib/libgphoto2/2.5.7/ptp2.so libgphoto2/2.5.7/
 cp -r /opt/local/lib/libgphoto2_port .
@@ -45,7 +46,9 @@ cp /opt/local/lib/libusb-0.1.4.dylib .
 cp /opt/local/lib/libusb-1.0.0.dylib .
 cp /opt/local/lib/libxml2.2.dylib .
 cp /opt/local/lib/libz.1.dylib .
+```
 
+```
 install_name_tool -id @executable_path/../Frameworks/liblzma.5.dylib liblzma.5.dylib
 install_name_tool -id @executable_path/../Frameworks/libusb-0.1.4.dylib libusb-0.1.4.dylib
 install_name_tool -change /opt/local/lib/libusb-0.1.4.dylib @executable_path/../Frameworks/libusb-0.1.4.dylib libgphoto2_port/0.12.0/usb.so
@@ -57,14 +60,18 @@ install_name_tool -change /opt/local/lib/libz.1.dylib @executable_path/../Framew
 install_name_tool -change /opt/local/lib/liblzma.5.dylib @executable_path/../Frameworks/liblzma.5.dylib libxml2.2.dylib
 install_name_tool -change /opt/local/lib/libiconv.2.dylib @executable_path/../Frameworks/libiconv.2.dylib libxml2.2.dylib
 install_name_tool -id @executable_path/../Frameworks/libz.1.dylib libz.1.dylib
+```
 
+```
 for LIB in disk.so ptpip.so serial.so usb.so usb1.so usbdiskdirect.so usbscsi.so
 do
     install_name_tool -change /opt/local/lib/libgphoto2_port.12.dylib @executable_path/../Frameworks/libgphoto2_port.12.dylib libgphoto2_port/0.12.0/$LIB
     install_name_tool -change /opt/local/lib/libltdl.7.dylib @executable_path/../Frameworks/libltdl.7.dylib libgphoto2_port/0.12.0/$LIB
     install_name_tool -change /opt/local/lib/libintl.8.dylib @executable_path/../Frameworks/libintl.8.dylib libgphoto2_port/0.12.0/$LIB
 done
+```
 
+```
 for LIB in ptp2.so
 do
     install_name_tool -change /opt/local/lib/libgphoto2.6.dylib @executable_path/../Frameworks/libgphoto2.6.dylib libgphoto2/2.5.7/$LIB
@@ -75,3 +82,4 @@ do
     install_name_tool -change /opt/local/lib/libiconv.2.dylib @executable_path/../Frameworks/libiconv.2.dylib libgphoto2/2.5.7/$LIB
     install_name_tool -change /opt/local/lib/libxml2.2.dylib @executable_path/../Frameworks/libxml2.2.dylib libgphoto2/2.5.7/$LIB
 done
+```
