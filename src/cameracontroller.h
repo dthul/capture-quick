@@ -12,6 +12,12 @@
 #include "image.h"
 #include "gputil.h"
 
+/**
+ *  This class is used by the Camera class to do the actual communication with
+ *  the underlying libgphoto wrapper camera object. It is supposed to run in its
+ *  own QThread so as not to block the application while communicating with the
+ *  camera.
+ */
 class CameraController : public QObject
 {
     Q_OBJECT

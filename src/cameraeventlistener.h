@@ -7,6 +7,12 @@
 
 #include "gputil.h"
 
+/**
+ *  This class listens to PTP events coming from the camera and translates the
+ *  known events into signals that will be emitted to let the application know
+ *  that something on the camera happened for example when the aperture settings
+ *  were changed or when a new image has been captured.
+ */
 class CameraEventListener : public QObject
 {
     Q_OBJECT
