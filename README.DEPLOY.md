@@ -37,6 +37,7 @@ install_name_tool command (adjust paths / versions to your needs):
 
 cd to the bundle's Frameworks folder, then:
 
+Copy all the needed libs from the system to the application bundle:
 ```
 mkdir -p libgphoto2/2.5.7
 cp /opt/local/lib/libgphoto2/2.5.7/ptp2.so libgphoto2/2.5.7/
@@ -48,6 +49,7 @@ cp /opt/local/lib/libxml2.2.dylib .
 cp /opt/local/lib/libz.1.dylib .
 ```
 
+Relink the libs to use relative paths:
 ```
 install_name_tool -id @executable_path/../Frameworks/liblzma.5.dylib liblzma.5.dylib
 install_name_tool -id @executable_path/../Frameworks/libusb-0.1.4.dylib libusb-0.1.4.dylib
