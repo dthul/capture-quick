@@ -7,7 +7,7 @@ include all required libs.
 Also specify the root directory containing the .qml files so that the
 proper QtQuick modules can be included in the application bundle.
 
-$ macdeployqt CaptureQuick.app -qmldir=/Users/dthul/Documents/capture/CaptureQuick/
+`$ macdeployqt CaptureQuick.app -qmldir=/Users/dthul/Documents/capture/CaptureQuick/`
 
 Since libgphoto2 tries to load shared libraries at runtime macdeplyqt does not
 know about these libs and won't include them in the application bundle. These
