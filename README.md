@@ -21,14 +21,13 @@ If you want to use it on any of the latter, contact me and/or send a pull reques
 * Qt 5 (tested with 5.4)
 * libgphoto2 (tested with 2.5.7)
 
-Make sure that the libgphoto2 headers are in the standard search path of the (pre-)compiler and that the linker flags
-`-lgphoto2` and `-lgphoto2_port` work since the CMake script won't check that.
-
 ## Basic Build Steps
 
 * Create an empty directory for the build
 * Execute `cmake <path-to-capture-quick-root>` out of the build directory
   * If successful you should have a Makefile now
-* Compile with `make -j`
+* Compile with `make`
 
 If you want to deploy the build to another machine, take a look at the README.DEPLOY.md file.
+
+For more verbose install instructions, take a look at the INSTALL.md and INSTALL_OSX.md files.

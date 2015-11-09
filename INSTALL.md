@@ -10,12 +10,11 @@
 
 Create a build directory and execute cmake, then make.
 Make sure that the libgphoto2 and libgphoto2_port headers and libraries can be
-found and linked since the provieded CMakeLists.txt does not check their
-presence.
+found.
 
 If your Qt5 installation is in a non-standard path you can call for example
 
-$ Qt5_DIR=/Users/dthul/Qt/5.4/clang_64/lib/cmake/Qt5 cmake ..
+$ cmake -DCMAKE_PREFIX_PATH=/Users/dthul/Qt/5.5/clang_64/ ..
 
 ## Windows
 

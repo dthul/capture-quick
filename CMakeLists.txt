@@ -7,16 +7,41 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -std=c++11 -stdlib=libc++"
 
 ### Compile the libgphoto2 wrapper library libgp
 
-# For MacPorts
-include_directories(/opt/local/include)
-link_directories(/opt/local/lib)
+find_path(LIBGPHOTO_INC_DIR
+    NAMES gphoto2.h
+    PATH_SUFFIXES include/gphoto2
+    DOC "libgphoto2 include path")
+
+if(NOT LIBGPHOTO_INC_DIR)
+    message(SEND_ERROR "The libgphoto2 includes could not be found. Please specify libgphoto2's root folder in the CMAKE_PREFIX_PATH (for a Homebrew installation this could be something like '/usr/local/Cellar/libgphoto2/2.5.7/')")
+endif()
+
+find_library(LIBGPHOTO_LIB
+    NAMES libgphoto2.dylib libgphoto2.so
+    PATH_SUFFIXES lib
+    DOC "libgphoto2 library path")
+
+if(NOT LIBGPHOTO_LIB)
+    message(SEND_ERROR "The libgphoto2 library could not be found. Please specify libgphoto2's root folder in the CMAKE_PREFIX_PATH (for a Homebrew installation this could be something like '/usr/local/Cellar/libgphoto2/2.5.7/')")
+endif()
+
+find_library(LIBGPHOTO_PORT_LIB
+    NAMES libgphoto2_port.dylib libgphoto2_port.so
+    PATH_SUFFIXES lib
+    DOC "libgphoto2-port library path")
+
+if(NOT LIBGPHOTO_PORT_LIB)
+    message(SEND_ERROR "The libgphoto2-port library could not be found. Please specify libgphoto2's root folder in the CMAKE_PREFIX_PATH (for a Homebrew installation this could be something like '/usr/local/Cellar/libgphoto2/2.5.7/')")
+endif()
+
+include_directories(${LIBGPHOTO_INC_DIR})
 
 set(LIB_SOURCES
     src/lib/gputil.cpp
     src/lib/gpwrap.cpp)
 
 add_library(gp STATIC ${LIB_SOURCES})
-target_link_libraries(gp -lgphoto2 -lgphoto2_port)
+target_link_libraries(gp ${LIBGPHOTO_LIB} ${LIBGPHOTO_PORT_LIB})
 
 
 ### Compile the main application
