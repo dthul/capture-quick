@@ -24,4 +24,4 @@ Create a build folder, configure the project, compile and link it (of course you
     $ cmake -DCMAKE_PREFIX_PATH=/Users/dthul/Qt/5.5/clang_64/ ..
     $ make
 
-You should now a the CaptureQuick application in your `build` folder.
+You should now have the CaptureQuick application in your `build` folder.
