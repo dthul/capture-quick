@@ -16,7 +16,7 @@ Check out the repository:
 
     $ git clone https://github.com/dthul/capture-quick.git
 
-Create a build folder, configure the project, compile and link it (of course you have to adjust the path to Qt5 and you might have to add another CMAKE_PREFIX_PATH entry for libgphoto2. CMake will tell you if something went wrong though):
+Create a build folder, configure the project, compile and link it (of course you have to adjust the path to Qt5. CMake will tell you if something went wrong though):
 
     $ cd capture-quick
     $ mkdir build
@@ -25,3 +25,7 @@ Create a build folder, configure the project, compile and link it (of course you
     $ make
 
 You should now have the CaptureQuick application in your `build` folder.
+
+Should CMake be unable to find libgphoto2 you also have to add its path to the CMake search paths, e.g.:
+
+    $  cmake -DCMAKE_PREFIX_PATH=/Users/dthul/Qt/5.5/clang_64/:/usr/local/Cellar/libgphoto2/2.5.7 ..
